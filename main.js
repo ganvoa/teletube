@@ -51,7 +51,7 @@ const startBot = async telegramBotToken => {
             player.remoteResume();
         } catch (error) {
             bot.notify(chatId, `Error: ${error}`);
-            logger.error(`error on command /play`, { error, ...tag.TELEGRAM });
+            logger.error(`error on command /play`, { error: makeError(error), ...tag.TELEGRAM });
         }
     });
 
@@ -73,7 +73,7 @@ const startBot = async telegramBotToken => {
         } catch (error) {
             bot.notify(chatId, `Error: ${error.message}`);
             logger.error(`error on command /play ${query}`, {
-                error,
+                error: makeError(error),
                 ...tag.TELEGRAM
             });
         }
@@ -93,7 +93,7 @@ const startBot = async telegramBotToken => {
         } catch (error) {
             bot.notify(chatId, `Error: ${error.message}`);
             logger.error(`error on command /add ${query}`, {
-                error,
+                error: makeError(error),
                 ...tag.TELEGRAM
             });
         }
@@ -113,7 +113,7 @@ const startBot = async telegramBotToken => {
         } catch (error) {
             bot.notify(chatId, `Error: ${error.message}`);
             logger.error(`error on command /next ${query}`, {
-                error,
+                error: makeError(error),
                 ...tag.TELEGRAM
             });
         }
@@ -126,7 +126,7 @@ const startBot = async telegramBotToken => {
             player.remoteSkip();
         } catch (error) {
             bot.notify(chatId, `Error: ${error}`);
-            logger.error(`error on command /next`, { error, ...tag.TELEGRAM });
+            logger.error(`error on command /next`, { error: makeError(error), ...tag.TELEGRAM });
         }
     });
 
@@ -137,7 +137,7 @@ const startBot = async telegramBotToken => {
             player.remotePause();
         } catch (error) {
             bot.notify(chatId, `Error: ${error}`);
-            logger.error(`error on command /pause`, { error, ...tag.TELEGRAM });
+            logger.error(`error on command /pause`, { error: makeError(error), ...tag.TELEGRAM });
         }
     });
 
@@ -148,7 +148,7 @@ const startBot = async telegramBotToken => {
             player.remotePrev();
         } catch (error) {
             bot.notify(chatId, `Error: ${error}`);
-            logger.error(`error on command /prev`, { error, ...tag.TELEGRAM });
+            logger.error(`error on command /prev`, { error: makeError(error), ...tag.TELEGRAM });
         }
     });
 
@@ -160,7 +160,7 @@ const startBot = async telegramBotToken => {
         } catch (error) {
             bot.notify(chatId, `Error: ${error}`);
             logger.error(`error on command /shuffle`, {
-                error,
+                error: makeError(error),
                 ...tag.TELEGRAM
             });
         }
@@ -174,7 +174,7 @@ const startBot = async telegramBotToken => {
         } catch (error) {
             bot.notify(chatId, `Error: ${error}`);
             logger.error(`error on command /volume ${volume}`, {
-                error,
+                error: makeError(error),
                 ...tag.TELEGRAM
             });
         }
@@ -216,7 +216,7 @@ const startBot = async telegramBotToken => {
             bot.notify(chatId, msg, options);
         } catch (error) {
             bot.notify(chatId, `Error: ${error}`);
-            logger.error(`error on command /list`, { error, ...tag.TELEGRAM });
+            logger.error(`error on command /list`, { error: makeError(error), ...tag.TELEGRAM });
         }
     });
 
@@ -238,7 +238,7 @@ const startBot = async telegramBotToken => {
         } catch (error) {
             bot.notify(chatId, `Error: ${error}`);
             logger.error(`error on command /song ${songIndex}`, {
-                error,
+                error: makeError(error),
                 ...tag.TELEGRAM
             });
         }
@@ -298,7 +298,7 @@ const startBot = async telegramBotToken => {
         } catch (error) {
             bot.notify(chatId, `Error: ${error}`);
             logger.error(`error on command /page ${page}`, {
-                error,
+                error: makeError(error),
                 ...tag.TELEGRAM
             });
         }
@@ -324,7 +324,7 @@ const startBot = async telegramBotToken => {
         } catch (error) {
             bot.notify(chatId, `Error: ${error}`);
             logger.error(`error on command /current`, {
-                error,
+                error: makeError(error),
                 ...tag.TELEGRAM
             });
         }
@@ -337,7 +337,7 @@ const startBot = async telegramBotToken => {
             player.setVolume(0);
         } catch (error) {
             bot.notify(chatId, `Error: ${error}`);
-            logger.error(`error on command /mute`, { error, ...tag.TELEGRAM });
+            logger.error(`error on command /mute`, { error: makeError(error), ...tag.TELEGRAM });
         }
     });
 
@@ -349,7 +349,7 @@ const startBot = async telegramBotToken => {
         } catch (error) {
             bot.notify(chatId, `Error: ${error}`);
             logger.error(`error on command /unmute`, {
-                error,
+                error: makeError(error),
                 ...tag.TELEGRAM
             });
         }
@@ -363,7 +363,7 @@ const startBot = async telegramBotToken => {
     });
 
     bot.onError(error => {
-        logger.error(`received error on polling`, { error, ...tag.TELEGRAM });
+        logger.error(`received error on polling`, { error: makeError(error), ...tag.TELEGRAM });
         let config = teletubeData.getConfig();
         config.telegramBotTokenValid = false;
         teletubeData.saveConfig(config);
@@ -393,7 +393,7 @@ const refreshSong = async (song, notify, play) => {
         if (player && play) player.remotePlay(updatedSong);
     } catch (error) {
         logger.error(`couldnt load audio url for ${song.uid}`, {
-            error,
+            error: makeError(error),
             ...tag.YOUTUBE
         });
         if (player && notify) player.updatePlaylist(teletubeData.getPlaylist());
@@ -415,7 +415,7 @@ app.on("ready", async () => {
             config.telegramBotTokenValid = true;
         } catch (error) {
             config.telegramBotTokenValid = false;
-            logger.error(`couldnt start bot`, { error, ...tag.TELEGRAM });
+            logger.error(`couldnt start bot`, { error: makeError(error), ...tag.TELEGRAM });
         }
 
         logger.info(
@@ -431,7 +431,7 @@ app.on("ready", async () => {
             config.youtubeApiKeyValid = isValid;
         } catch (error) {
             config.youtubeApiKeyValid = false;
-            logger.error(`api key invalid`, { error, ...tag.YOUTUBE });
+            logger.error(`api key invalid`, { error: makeError(error), ...tag.YOUTUBE });
         }
 
         config = teletubeData.saveConfig(config).getConfig();
@@ -521,7 +521,7 @@ app.on("ready", async () => {
             else logger.warn(`api key is invalid`, tag.YOUTUBE);
             config.youtubeApiKeyValid = isValid;
         } catch (error) {
-            logger.error(`api key is invalid`, { error, ...tag.YOUTUBE });
+            logger.error(`api key is invalid`, { error: makeError(error), ...tag.YOUTUBE });
         }
 
         logger.info(`testing token`, tag.TELEGRAM);
@@ -536,7 +536,7 @@ app.on("ready", async () => {
             config.telegramBotTokenValid = true;
         } catch (error) {
             config.telegramBotTokenValid = false;
-            logger.error(`couldnt start bot`, { error, ...tag.TELEGRAM });
+            logger.error(`couldnt start bot`, { error: makeError(error), ...tag.TELEGRAM });
         }
         config = teletubeData.saveConfig(config).getConfig();
         player.loadConfig(config);

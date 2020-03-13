@@ -4,6 +4,7 @@ const { Ytb } = require("./lib/Ytb");
 const { app, ipcMain } = require("electron");
 const { Player } = require("./lib/Player");
 const { Bot } = require("./lib/Bot");
+const { makeError } = require("./lib/utils");
 const DataStore = require("./lib/datastore");
 const teletubeData = new DataStore({ name: "teletube" });
 

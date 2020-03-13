@@ -1,0 +1,32 @@
+{
+  "name": "ytplayer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test-youtube": "electron tests/youtube.js",
+    "test-telegram": "node tests/telegram.js",
+    "dist": "electron-packager ./ TTPlayer --platform=linux --out ./dist --overwrite --asar=true"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.19.2",
+    "castv2-client": "^1.2.0",
+    "chromecast-api": "^0.3.1",
+    "create-react-app": "^3.4.0",
+    "dotenv": "^8.2.0",
+    "electron": "^8.1.0",
+    "electron-store": "^5.1.1",
+    "google-auth-library": "^5.10.1",
+    "googleapis": "^48.0.0",
+    "jsdom": "^16.2.0",
+    "mdns": "^2.5.1",
+    "node-telegram-bot-api": "^0.40.0",
+    "uuid": "^7.0.2",
+    "winston": "^3.2.1",
+    "winston-console-format": "^1.0.5",
+    "winston-console-formatter": "^1.0.0-beta.3"
+  }
+}

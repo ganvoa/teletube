@@ -17,14 +17,28 @@
 .tt-icon {
     cursor: pointer;
 }
-.tt-icon:hover, .tt-icon:active, .tt-icon:focus {
+.tt-icon:hover,
+.tt-icon:active,
+.tt-icon:focus {
     color: #e91e63;
 }
-.tt-btn:hover, .tt-btn:active, .tt-btn:focus {
+.tt-btn:hover,
+.tt-btn:active,
+.tt-btn:focus {
     color: #e91e63;
     border: none;
     background: transparent;
 }
 * {
     cursor: default;
+}
+
+.blur-player {
+    width: 200%;
+    height: 200%;
+    margin-left: -100px;
+    margin-top: -100px;
+    background-size: 200%;
+    background-position: center center;
+    filter: brightness(0.3) blur(10px);
 }

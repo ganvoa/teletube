@@ -314,12 +314,8 @@ class Player extends React.Component {
                         >
                             {this.state.currentSong ? (
                                 <div
+                                    className="blur-player"
                                     style={{
-                                        width: "100%",
-                                        height: "100%",
-                                        backgroundSize: 1000,
-                                        backgroundPosition: "center center",
-                                        filter: "blur(35px)",
                                         backgroundImage: this.state.currentSong
                                             ? `url(${this.state.currentSong.thumbnails.medium.url})`
                                             : null

@@ -4,7 +4,7 @@ const Cast = () => (
         <svg
             viewBox="0 0 469.333 469.333"
             focusable="false"
-            classNamw=""
+            className=""
             data-icon="setting"
             width="1em"
             height="1em"

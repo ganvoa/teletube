@@ -4,7 +4,7 @@ const Shuffle = () => (
         <svg
             viewBox="0 0 512 512"
             focusable="false"
-            classNamw=""
+            className=""
             data-icon="setting"
             width="1em"
             height="1em"

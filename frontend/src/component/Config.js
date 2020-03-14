@@ -15,9 +15,7 @@ class Config extends React.Component {
             showForm: false,
             config: {
                 telegramBotTokenValid: false,
-                telegramBotToken: null,
-                youtubeApiKeyValid: false,
-                youtubeApiKey: null
+                telegramBotToken: null
             }
         };
     }
@@ -27,12 +25,15 @@ class Config extends React.Component {
         ipcRenderer.send(`load-config`, {});
         ipcRenderer.on(`config-update`, (e, config) => {
             console.log(`config-update`);
-            this.setState({
-                config: config,
-                loading: false
-            }, () => {
-                this.props.onConfigUpdate(config);
-            });
+            this.setState(
+                {
+                    config: config,
+                    loading: false
+                },
+                () => {
+                    this.props.onConfigUpdate(config);
+                }
+            );
             this.closeForm();
         });
     }
@@ -42,8 +43,8 @@ class Config extends React.Component {
             this.form = null;
         });
     };
-    showForm = (youtube, telegram) => {
-        console.log(`creating new form with: ${youtube}`);
+
+    showForm = telegram => {
         console.log(`creating new form with: ${telegram}`);
         const layout = {
             layout: "vertical"
@@ -54,25 +55,11 @@ class Config extends React.Component {
                 {...layout}
                 name="basic"
                 initialValues={{
-                    youtubeApiKey: youtube,
                     telegramBotToken: telegram
                 }}
                 onFinish={this.onFinish}
                 onFinishFailed={this.onFinishFailed}
             >
-                <Form.Item
-                    label="Youtube API Key"
-                    name="youtubeApiKey"
-                    rules={[
-                        {
-                            required: true,
-                            message: "Please input your Youtube API Key"
-                        }
-                    ]}
-                >
-                    <Input.Password />
-                </Form.Item>
-
                 <Form.Item
                     label="Telegram Bot Token"
                     name="telegramBotToken"
@@ -99,8 +86,7 @@ class Config extends React.Component {
     onFinish = values => {
         console.log("Success:", values);
         const config = {
-            telegramBotToken: values.telegramBotToken,
-            youtubeApiKey: values.youtubeApiKey
+            telegramBotToken: values.telegramBotToken
         };
         this.setState({
             loading: true
@@ -131,7 +117,6 @@ class Config extends React.Component {
                             <Button
                                 onClick={() => {
                                     this.showForm(
-                                        this.state.config.youtubeApiKey,
                                         this.state.config.telegramBotToken
                                     );
                                 }}
@@ -166,20 +151,6 @@ class Config extends React.Component {
                             this.form
                         ) : (
                             <>
-                                <p>
-                                    {this.state.config.youtubeApiKeyValid ? (
-                                        <CheckCircleTwoTone
-                                            twoToneColor="#52c41a"
-                                            style={{ marginRight: 10 }}
-                                        />
-                                    ) : (
-                                        <CloseCircleTwoTone
-                                            twoToneColor="#eb2f96"
-                                            style={{ marginRight: 10 }}
-                                        />
-                                    )}{" "}
-                                    Youtube API Key
-                                </p>
                                 <p>
                                     {this.state.config.telegramBotTokenValid ? (
                                         <CheckCircleTwoTone

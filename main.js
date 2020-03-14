@@ -1,6 +1,6 @@
 const ChromecastAPI = require("chromecast-api");
 const { logger, tag } = require("./lib/logger");
-const { Ytb } = require("./lib/Ytb");
+const { getAudioUrl } = require("./lib/Ytb");
 const { app, ipcMain } = require("electron");
 const { Player } = require("./lib/Player");
 const { Bot } = require("./lib/Bot");
@@ -12,7 +12,7 @@ const { YoutubeV3 } = require("./lib/YoutubeV3");
 
 app.allowRendererProcessReuse = true;
 
-let ytb = null;
+let youtube = null;
 let bot = null;
 let player = null;
 let INTERVAL_CHECKEXPIRED_ID = null;
@@ -66,9 +66,9 @@ const startBot = async telegramBotToken => {
         try {
             bot.notify(chatId, `Buscando la canción: ${query}`);
             logger.info(`searching for ${query}`, tag.YOUTUBE);
-            let song = await ytb.getSong(query);
+            let song = await youtube.getSong(query);
             logger.info(`got song ${song.uid} - ${song.title}`, tag.YOUTUBE);
-            song = await ytb.getAudioUrl(song);
+            song = await getAudioUrl(song);
             logger.info(`got audio url for song ${song.uid}`, tag.YOUTUBE);
             bot.notify(
                 chatId,
@@ -90,9 +90,9 @@ const startBot = async telegramBotToken => {
         try {
             bot.notify(chatId, `Buscando la canción: ${query}`);
             logger.info(`searching for ${query}`, tag.YOUTUBE);
-            let song = await ytb.getSong(query);
+            let song = await youtube.getSong(query);
             logger.info(`got song ${song.uid} - ${song.title}`, tag.YOUTUBE);
-            song = await ytb.getAudioUrl(song);
+            song = await getAudioUrl(song);
             logger.info(`got audio url for song ${song.uid}`, tag.YOUTUBE);
             bot.notify(chatId, `Se agregó la canción: ${song.title}`);
             player.updatePlaylist(teletubeData.addSong(song).getPlaylist());
@@ -110,9 +110,9 @@ const startBot = async telegramBotToken => {
         try {
             bot.notify(chatId, `Buscando la canción: ${query}`);
             logger.info(`searching for ${query}`, tag.YOUTUBE);
-            let song = await ytb.getSong(query);
+            let song = await youtube.getSong(query);
             logger.info(`got song ${song.uid} - ${song.title}`, tag.YOUTUBE);
-            song = await ytb.getAudioUrl(song);
+            song = await getAudioUrl(song);
             logger.info(`got audio url for song ${song.uid}`, tag.YOUTUBE);
             bot.notify(chatId, `Se agregó la canción: ${song.title}`);
             player.updatePlaylist(teletubeData.putSongNext(song).getPlaylist());
@@ -410,16 +410,17 @@ const refreshSong = async (song, notify, play) => {
     logger.info(`refreshing song ${song.uid} - ${song.title}`, tag.YOUTUBE);
     player.updateLoading(`Fixing song ${song.uid} - ${song.title}`);
     try {
-        let updatedSong = await ytb.getAudioUrl(song);
+        let updatedSong = await getAudioUrl(song);
         logger.info(`got audio url for ${song.uid}`, tag.YOUTUBE);
         teletubeData.updateSong(updatedSong);
-        if (player && notify) player.updatePlaylist(teletubeData.getPlaylist());
         if (player && play) player.remotePlay(updatedSong);
+        if (player && notify) player.updatePlaylist(teletubeData.getPlaylist());
     } catch (error) {
         logger.error(`couldnt load audio url for ${song.uid}`, {
             error: makeError(error),
             ...tag.YOUTUBE
         });
+        if (player && play) player.remoteSkip();
         if (player && notify) player.updatePlaylist(teletubeData.getPlaylist());
     }
 };
@@ -435,7 +436,7 @@ app.on("ready", async () => {
         player.loading(true);
         player.updateLoading("Waiting Youtube authentication...");
         try {
-            const youtube = new YoutubeV3(clientCredentials);
+            youtube = new YoutubeV3(clientCredentials);
             youtube.createOauthClient();
             let channel = await youtube.authenticate();
             logger.info(`Authentication succeed channel: ${channel.title}`, tag.YOUTUBE);
@@ -446,7 +447,7 @@ app.on("ready", async () => {
                 ...tag.YOUTUBE
             });
         }
-
+        
         player.updateLoading("Starting Bot...");
         try {
             await stopBot();
@@ -459,30 +460,8 @@ app.on("ready", async () => {
                 ...tag.TELEGRAM
             });
         }
-
-        logger.info(
-            `starting service with api key: ${config.youtubeApiKey}`,
-            tag.YOUTUBE
-        );
-
-        player.updateLoading("Validating Youtube API Key...");
-        ytb = new Ytb(config.youtubeApiKey);
-        try {
-            let isValid = await ytb.test();
-            logger.info(`api key valid`, tag.YOUTUBE);
-            config.youtubeApiKeyValid = isValid;
-        } catch (error) {
-            config.youtubeApiKeyValid = false;
-            logger.error(`api key invalid`, {
-                error: makeError(error),
-                ...tag.YOUTUBE
-            });
-        }
-
+        
         config = teletubeData.saveConfig(config).getConfig();
-
-        // player.updateLoading("Checking Expired Songs...");
-        // await checkExpiredsongs(false);
 
         player.loading(false);
         logger.info(`window content ready`, tag.MAIN);
@@ -556,23 +535,8 @@ app.on("ready", async () => {
         logger.info(`reloading services`, tag.MAIN);
         config = teletubeData.getConfig();
         config.telegramBotToken = updatedConfig.telegramBotToken;
-        config.youtubeApiKey = updatedConfig.youtubeApiKey;
         config = teletubeData.saveConfig(config).getConfig();
-        logger.info(`testing api key`, tag.YOUTUBE);
-        try {
-            ytb.setApiKey(config.youtubeApiKey);
-            let isValid = await ytb.test();
-            if (isValid) logger.info(`api key is valid`, tag.YOUTUBE);
-            else logger.warn(`api key is invalid`, tag.YOUTUBE);
-            config.youtubeApiKeyValid = isValid;
-        } catch (error) {
-            logger.error(`api key is invalid`, {
-                error: makeError(error),
-                ...tag.YOUTUBE
-            });
-        }
-
-        logger.info(`testing token`, tag.TELEGRAM);
+        logger.info(`testing bot token`, tag.TELEGRAM);
         try {
             await bot.changeToken(config.telegramBotToken);
             logger.info(`getting updates`, tag.TELEGRAM);

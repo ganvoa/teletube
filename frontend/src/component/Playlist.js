@@ -1,5 +1,4 @@
 import React from "react";
-import "../assets/scrollbar.css";
 import {
     Row,
     Col,
@@ -10,20 +9,14 @@ import {
     Dropdown,
     Menu,
     Button,
-    Switch,
-    Drawer
+    Switch
 } from "antd";
 import {
     DeleteFilled,
     CaretRightOutlined,
     MoreOutlined,
-    RetweetOutlined,
-    DesktopOutlined,
-    SoundOutlined,
-    LoadingOutlined,
-    SettingOutlined
+    RetweetOutlined
 } from "@ant-design/icons";
-import Config from "./Config";
 
 class Playlist extends React.Component {
     menu = (currentSong, song) => (
@@ -55,8 +48,6 @@ class Playlist extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            showDevices: false,
-            configVisible: false,
             playlist: []
         };
     }
@@ -88,110 +79,15 @@ class Playlist extends React.Component {
         ipcRenderer.send(`delete-song`, song);
     }
 
-    showDevices() {
-        this.setState({
-            showDevices: true
-        });
-    }
-
-    hideDevices() {
-        this.setState({
-            showDevices: false
-        });
-    }
-
-    onDeviceSelect(device) {
-        this.props.onSelectDevice(device);
-    }
-
-    onDisconnectDevice() {
-        if (this.props.device) this.props.onDisconnectDevice();
-    }
-
-    onCloseConfig() {
-        this.setState({
-            configVisible: false
-        });
-    }
-
     render() {
         return (
             <div>
-                <Config
-                    visible={this.state.configVisible}
-                    onCloseConfig={this.onCloseConfig.bind(this)}
-                />
-                <Drawer
-                    title="Select Device"
-                    placement="right"
-                    closable={true}
-                    onClose={this.hideDevices.bind(this)}
-                    visible={this.state.showDevices}
-                >
-                    {this.props.devices.map(el => (
-                        <p
-                            key={el.name}
-                            style={{
-                                cursor: "pointer",
-                                color:
-                                    this.props.device &&
-                                    this.props.device.name === el.name
-                                        ? "#e91e63"
-                                        : null
-                            }}
-                            onClick={() => {
-                                if (this.props.device)
-                                    this.onDisconnectDevice();
-                                else this.onDeviceSelect(el);
-                            }}
-                        >
-                            {this.props.loadingDevice ? (
-                                <LoadingOutlined style={{ marginRight: 10 }} />
-                            ) : null}
-                            {!this.props.loadingDevice &&
-                            this.props.device &&
-                            this.props.device.name === el.name ? (
-                                <SoundOutlined style={{ marginRight: 10 }} />
-                            ) : null}
-                            {el.friendlyName}
-                        </p>
-                    ))}
-                </Drawer>
                 <PageHeader
                     title="Playlist"
                     subTitle={`${this.state.playlist.length} song${
                         this.state.playlist.length !== 1 ? "s" : ""
                     }`}
                     extra={[
-                        <Button
-                            key={2}
-                            shape="circle"
-                            icon={<SettingOutlined />}
-                            style={{ marginRight: 10, border: "none" }}
-                            onClick={() => {
-                                this.setState({ configVisible: true });
-                            }}
-                        />,
-                        <Button
-                            key={1}
-                            disabled={this.props.devices.length < 1}
-                            shape="circle"
-                            icon={
-                                this.props.loadingDevice ? (
-                                    <LoadingOutlined />
-                                ) : (
-                                    <DesktopOutlined
-                                        style={{
-                                            color: this.props.device
-                                                ? "#e91e63"
-                                                : null
-                                        }}
-                                    />
-                                )
-                            }
-                            style={{ marginRight: 20, border: "none" }}
-                            onClick={this.showDevices.bind(this)}
-                        />,
                         <Switch
                             key={0}
                             checkedChildren={<RetweetOutlined />}
@@ -206,9 +102,9 @@ class Playlist extends React.Component {
                     <List
                         style={{
                             overflowY: "auto",
-                            height: "calc(100vh - 64px)",
-                            maxHeight: "calc(100vh - 64px)",
-                            minHeigh: "calc(100vh - 64px)"
+                            height: "calc(100vh - 128px)",
+                            maxHeight: "calc(100vh - 128px)",
+                            minHeigh: "calc(100vh - 128px)"
                         }}
                         bordered
                         dataSource={this.state.playlist}

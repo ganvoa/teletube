@@ -1,11 +1,15 @@
 import React from "react";
 
 import "antd/dist/antd.min.css";
+import "./assets/main.css";
 import "./assets/loading.css";
+import "./assets/scrollbar.css";
 
 import { Row, Col } from "antd";
+import Status from "./component/Status";
 import Player from "./component/Player";
 import Playlist from "./component/Playlist";
+
 class App extends React.Component {
     constructor(props) {
         super(props);
@@ -180,60 +184,68 @@ class App extends React.Component {
     }
 
     render() {
+        let classLoading = this.state.isLoading ? `loading` : `loading hidden`;
+        let classMain = this.state.isLoading ? `hidden` : ``;
+
         return (
             <div>
-                {this.state.isLoading ? (
-                    <div className="loading">
-                        <div className="loadingio-spinner-bars-axpzpuw254w">
-                            <div className="ldio-tikloxx5pb">
-                                <div></div>
-                                <div></div>
-                                <div></div>
-                                <div></div>
-                            </div>
+                <div className={classLoading}>
+                    <div className="loadingio-spinner-bars-axpzpuw254w">
+                        <div className="ldio-tikloxx5pb">
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                            <div></div>
                         </div>
-                        <p className="loading-text">
-                            {this.state.loadingMessage}
-                        </p>
                     </div>
-                ) : (
-                    <Row>
-                        <Col theme="dark" span={12}>
-                            <Player
-                                onDeviceDisconnected={this.onDeviceDisconnected.bind(
-                                    this
-                                )}
-                                onDeviceSelected={this.onDeviceSelected.bind(
-                                    this
-                                )}
-                                device={this.state.device}
-                                nextSong={this.state.nextSong}
-                                prevSong={this.state.prevSong}
-                                onPlay={this.onPlay.bind(this)}
-                            />
-                        </Col>
-                        <Col
-                            span={12}
-                            style={{
-                                height: "calc(100vh)"
-                            }}
-                        >
-                            <Playlist
-                                device={this.state.device}
-                                devices={this.state.devices}
-                                onDisconnectDevice={this.onDisconnectDevice.bind(
-                                    this
-                                )}
-                                onSelectDevice={this.onSelectDevice.bind(this)}
-                                loadingDevice={this.state.loadingDevice}
-                                currentSong={this.state.currentSong}
-                                onPlaylist={this.onPlaylist.bind(this)}
-                                onLoopChange={this.onLoopChange.bind(this)}
-                                loop={this.state.loop}
-                            />
-                        </Col>
-                    </Row>
-                )}
+                    <p className="loading-text">{this.state.loadingMessage}</p>
+                </div>
+                <Row className={classMain}>
+                    <Col theme="dark" span={10}>
+                        <Player
+                            onDeviceDisconnected={this.onDeviceDisconnected.bind(
+                                this
+                            )}
+                            onDeviceSelected={this.onDeviceSelected.bind(this)}
+                            device={this.state.device}
+                            nextSong={this.state.nextSong}
+                            prevSong={this.state.prevSong}
+                            onPlay={this.onPlay.bind(this)}
+                        />
+                    </Col>
+                    <Col
+                        span={14}
+                        style={{
+                            height: "calc(100vh)"
+                        }}
+                    >
+                        <Row>
+                            <Col span={24}>
+                                <Status
+                                    device={this.state.device}
+                                    devices={this.state.devices}
+                                    onDisconnectDevice={this.onDisconnectDevice.bind(
+                                        this
+                                    )}
+                                    onSelectDevice={this.onSelectDevice.bind(
+                                        this
+                                    )}
+                                    loadingDevice={this.state.loadingDevice}
+                                />
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col span={24}>
+                                <Playlist
+                                    currentSong={this.state.currentSong}
+                                    onPlaylist={this.onPlaylist.bind(this)}
+                                    onLoopChange={this.onLoopChange.bind(this)}
+                                    loop={this.state.loop}
+                                />
+                            </Col>
+                        </Row>
+                    </Col>
+                </Row>
             </div>
         );
     }

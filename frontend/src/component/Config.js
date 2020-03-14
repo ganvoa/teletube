@@ -30,6 +30,8 @@ class Config extends React.Component {
             this.setState({
                 config: config,
                 loading: false
+            }, () => {
+                this.props.onConfigUpdate(config);
             });
             this.closeForm();
         });

@@ -5,8 +5,10 @@ const { app, ipcMain } = require("electron");
 const { Player } = require("./lib/Player");
 const { Bot } = require("./lib/Bot");
 const { makeError } = require("./lib/utils");
+const clientCredentials = require("./client_secret.json");
 const DataStore = require("./lib/datastore");
 const teletubeData = new DataStore({ name: "teletube" });
+const { YoutubeV3 } = require("./lib/YoutubeV3");
 
 app.allowRendererProcessReuse = true;
 
@@ -52,7 +54,10 @@ const startBot = async telegramBotToken => {
             player.remoteResume();
         } catch (error) {
             bot.notify(chatId, `Error: ${error}`);
-            logger.error(`error on command /play`, { error: makeError(error), ...tag.TELEGRAM });
+            logger.error(`error on command /play`, {
+                error: makeError(error),
+                ...tag.TELEGRAM
+            });
         }
     });
 
@@ -127,7 +132,10 @@ const startBot = async telegramBotToken => {
             player.remoteSkip();
         } catch (error) {
             bot.notify(chatId, `Error: ${error}`);
-            logger.error(`error on command /next`, { error: makeError(error), ...tag.TELEGRAM });
+            logger.error(`error on command /next`, {
+                error: makeError(error),
+                ...tag.TELEGRAM
+            });
         }
     });
 
@@ -138,7 +146,10 @@ const startBot = async telegramBotToken => {
             player.remotePause();
         } catch (error) {
             bot.notify(chatId, `Error: ${error}`);
-            logger.error(`error on command /pause`, { error: makeError(error), ...tag.TELEGRAM });
+            logger.error(`error on command /pause`, {
+                error: makeError(error),
+                ...tag.TELEGRAM
+            });
         }
     });
 
@@ -149,7 +160,10 @@ const startBot = async telegramBotToken => {
             player.remotePrev();
         } catch (error) {
             bot.notify(chatId, `Error: ${error}`);
-            logger.error(`error on command /prev`, { error: makeError(error), ...tag.TELEGRAM });
+            logger.error(`error on command /prev`, {
+                error: makeError(error),
+                ...tag.TELEGRAM
+            });
         }
     });
 
@@ -217,7 +231,10 @@ const startBot = async telegramBotToken => {
             bot.notify(chatId, msg, options);
         } catch (error) {
             bot.notify(chatId, `Error: ${error}`);
-            logger.error(`error on command /list`, { error: makeError(error), ...tag.TELEGRAM });
+            logger.error(`error on command /list`, {
+                error: makeError(error),
+                ...tag.TELEGRAM
+            });
         }
     });
 
@@ -338,7 +355,10 @@ const startBot = async telegramBotToken => {
             player.setVolume(0);
         } catch (error) {
             bot.notify(chatId, `Error: ${error}`);
-            logger.error(`error on command /mute`, { error: makeError(error), ...tag.TELEGRAM });
+            logger.error(`error on command /mute`, {
+                error: makeError(error),
+                ...tag.TELEGRAM
+            });
         }
     });
 
@@ -364,7 +384,10 @@ const startBot = async telegramBotToken => {
     });
 
     bot.onError(error => {
-        logger.error(`received error on polling`, { error: makeError(error), ...tag.TELEGRAM });
+        logger.error(`received error on polling`, {
+            error: makeError(error),
+            ...tag.TELEGRAM
+        });
         let config = teletubeData.getConfig();
         config.telegramBotTokenValid = false;
         teletubeData.saveConfig(config);
@@ -408,7 +431,22 @@ app.on("ready", async () => {
     player = new Player(async () => {
         logger.info(`player window shown`, tag.MAIN);
         logger.info(`preparing window content`, tag.MAIN);
+        
         player.loading(true);
+        player.updateLoading("Waiting Youtube authentication...");
+        try {
+            const youtube = new YoutubeV3(clientCredentials);
+            youtube.createOauthClient();
+            let channel = await youtube.authenticate();
+            logger.info(`Authentication succeed channel: ${channel.title}`, tag.YOUTUBE);
+            player.setYoutubeChannel(channel);
+        } catch (error) {
+            logger.error(`Error on authentication ${error.message}`, {
+                error: makeError(error),
+                ...tag.YOUTUBE
+            });
+        }
+
         player.updateLoading("Starting Bot...");
         try {
             await stopBot();
@@ -416,7 +454,10 @@ app.on("ready", async () => {
             config.telegramBotTokenValid = true;
         } catch (error) {
             config.telegramBotTokenValid = false;
-            logger.error(`couldnt start bot`, { error: makeError(error), ...tag.TELEGRAM });
+            logger.error(`couldnt start bot`, {
+                error: makeError(error),
+                ...tag.TELEGRAM
+            });
         }
 
         logger.info(
@@ -432,7 +473,10 @@ app.on("ready", async () => {
             config.youtubeApiKeyValid = isValid;
         } catch (error) {
             config.youtubeApiKeyValid = false;
-            logger.error(`api key invalid`, { error: makeError(error), ...tag.YOUTUBE });
+            logger.error(`api key invalid`, {
+                error: makeError(error),
+                ...tag.YOUTUBE
+            });
         }
 
         config = teletubeData.saveConfig(config).getConfig();
@@ -522,7 +566,10 @@ app.on("ready", async () => {
             else logger.warn(`api key is invalid`, tag.YOUTUBE);
             config.youtubeApiKeyValid = isValid;
         } catch (error) {
-            logger.error(`api key is invalid`, { error: makeError(error), ...tag.YOUTUBE });
+            logger.error(`api key is invalid`, {
+                error: makeError(error),
+                ...tag.YOUTUBE
+            });
         }
 
         logger.info(`testing token`, tag.TELEGRAM);
@@ -537,7 +584,10 @@ app.on("ready", async () => {
             config.telegramBotTokenValid = true;
         } catch (error) {
             config.telegramBotTokenValid = false;
-            logger.error(`couldnt start bot`, { error: makeError(error), ...tag.TELEGRAM });
+            logger.error(`couldnt start bot`, {
+                error: makeError(error),
+                ...tag.TELEGRAM
+            });
         }
         config = teletubeData.saveConfig(config).getConfig();
         player.loadConfig(config);

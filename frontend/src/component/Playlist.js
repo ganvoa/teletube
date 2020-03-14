@@ -11,13 +11,16 @@ import {
     Button,
     Switch
 } from "antd";
+
+import Shuffle from "../assets/svg/shuffle";
+
 import {
     DeleteFilled,
     CaretRightOutlined,
     MoreOutlined,
-    RetweetOutlined
+    RetweetOutlined,
+    LoadingOutlined
 } from "@ant-design/icons";
-
 class Playlist extends React.Component {
     menu = (currentSong, song) => (
         <Menu>
@@ -33,29 +36,34 @@ class Playlist extends React.Component {
                 <DeleteFilled />
                 Delete
             </Menu.Item>
-            <Menu.Item
-                key="2"
-                onClick={() => {
-                    this.onPlaySelected(song);
-                }}
-            >
-                <CaretRightOutlined />
-                Play
-            </Menu.Item>
         </Menu>
     );
 
     constructor(props) {
         super(props);
         this.state = {
-            playlist: []
+            playlist: [],
+            shuffling: false
         };
     }
 
     componentDidMount() {
         const { ipcRenderer } = window.require("electron");
+
         ipcRenderer.on(`playlist`, (e, playlist) => {
             this.onPlaylist(playlist);
+        });
+
+        ipcRenderer.on(`shuffle-start`, e => {
+            this.setState({
+                shuffling: true
+            });
+        });
+
+        ipcRenderer.on(`shuffle-end`, e => {
+            this.setState({
+                shuffling: false
+            });
         });
     }
 
@@ -79,6 +87,20 @@ class Playlist extends React.Component {
         ipcRenderer.send(`delete-song`, song);
     }
 
+    onShuffleEnd() {
+        this.setState({
+            shuffling: false
+        });
+    }
+
+    onShuffleRequest() {
+        this.setState({
+            shuffling: true
+        });
+        const { ipcRenderer } = window.require("electron");
+        ipcRenderer.send(`shuffle-playlist`, {});
+    }
+
     render() {
         return (
             <div>
@@ -88,8 +110,27 @@ class Playlist extends React.Component {
                         this.state.playlist.length !== 1 ? "s" : ""
                     }`}
                     extra={[
-                        <Switch
+                        <Button
                             key={0}
+                            shape="circle"
+                            className="tt-btn"
+                            disabled={this.state.shuffling}
+                            icon={
+                                this.state.shuffling ? (
+                                    <LoadingOutlined
+                                        style={{
+                                            color: "#e91e63"
+                                        }}
+                                    />
+                                ) : (
+                                    <Shuffle />
+                                )
+                            }
+                            style={{ marginRight: 20, border: "none" }}
+                            onClick={this.onShuffleRequest.bind(this)}
+                        />,
+                        <Switch
+                            key={1}
                             checkedChildren={<RetweetOutlined />}
                             unCheckedChildren={<RetweetOutlined />}
                             defaultChecked
@@ -109,45 +150,76 @@ class Playlist extends React.Component {
                         bordered
                         dataSource={this.state.playlist}
                         renderItem={item => (
-                            <List.Item style={{ justifyContent: "start" }}>
-                                <img
-                                    alt=""
-                                    src={item.thumbnails.medium.url}
-                                    onClick={() => {
-                                        this.onPlaySelected(item);
-                                    }}
-                                    style={{ cursor: "pointer", width: 60 }}
-                                />
-                                <Dropdown
-                                    overlay={this.menu(
-                                        this.props.currentSong,
-                                        item
-                                    )}
-                                >
-                                    <Button size={"small"} type={"link"}>
-                                        <MoreOutlined />
-                                    </Button>
-                                </Dropdown>
-                                {this.props.currentSong &&
-                                this.props.currentSong.uid === item.uid ? (
-                                    <Typography.Text
-                                        strong
-                                        ellipsis
-                                        style={{
-                                            maxWidth: 310,
-                                            color: "#e91e63"
+                            <List.Item
+                                className={
+                                    this.props.currentSong &&
+                                    this.props.currentSong.uid === item.uid
+                                        ? "tt-playlist-song tt-current-playlist-song "
+                                        : "tt-playlist-song"
+                                }
+                                style={{ justifyContent: "space-between" }}
+                            >
+                                <div style={{ width: "calc(100% - 60px)" }}>
+                                    <img
+                                        alt=""
+                                        src={item.thumbnails.medium.url}
+                                        onClick={() => {
+                                            this.onPlaySelected(item);
                                         }}
+                                        style={{
+                                            cursor: "pointer",
+                                            width: 60,
+                                            marginRight: 20
+                                        }}
+                                    />
+                                    {this.props.currentSong &&
+                                    this.props.currentSong.uid === item.uid ? (
+                                        <Typography.Text
+                                            strong
+                                            ellipsis
+                                            style={{
+                                                maxWidth: "calc(100% - 90px)",
+                                                color: "#e91e63"
+                                            }}
+                                        >
+                                            {item.title}
+                                        </Typography.Text>
+                                    ) : (
+                                        <Typography.Text
+                                            style={{
+                                                maxWidth: "calc(100% - 90px)"
+                                            }}
+                                            ellipsis
+                                        >
+                                            {item.title}
+                                        </Typography.Text>
+                                    )}
+                                </div>
+                                <div>
+                                    <Button
+                                        shape="circle"
+                                        size="small"
+                                        className="tt-btn"
+                                        icon={<CaretRightOutlined />}
+                                        style={{ border: "none" }}
+                                        onClick={() => {
+                                            this.onPlaySelected(item);
+                                        }}
+                                    />
+                                    <Dropdown
+                                        overlay={this.menu(
+                                            this.props.currentSong,
+                                            item
+                                        )}
                                     >
-                                        {item.title}
-                                    </Typography.Text>
-                                ) : (
-                                    <Typography.Text
-                                        style={{ maxWidth: 310 }}
-                                        ellipsis
-                                    >
-                                        {item.title}
-                                    </Typography.Text>
-                                )}
+                                        <Button
+                                            className="tt-btn"
+                                            size={"small"}
+                                            icon={<MoreOutlined />}
+                                            type={"link"}
+                                        />
+                                    </Dropdown>
+                                </div>
                             </List.Item>
                         )}
                     />

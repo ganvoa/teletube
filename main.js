@@ -171,7 +171,11 @@ const startBot = async telegramBotToken => {
         logger.info(`received command /shuffle`, tag.TELEGRAM);
         try {
             bot.notify(chatId, `:)`);
+            player.remoteShuffleStart();
             player.updatePlaylist(teletubeData.shuffle().getPlaylist());
+            setTimeout(() => {
+                player.remoteShuffleEnd();
+            }, 1000);
         } catch (error) {
             bot.notify(chatId, `Error: ${error}`);
             logger.error(`error on command /shuffle`, {
@@ -432,14 +436,17 @@ app.on("ready", async () => {
     player = new Player(async () => {
         logger.info(`player window shown`, tag.MAIN);
         logger.info(`preparing window content`, tag.MAIN);
-        
+
         player.loading(true);
         player.updateLoading("Waiting Youtube authentication...");
         try {
             youtube = new YoutubeV3(clientCredentials);
             youtube.createOauthClient();
             let channel = await youtube.authenticate();
-            logger.info(`Authentication succeed channel: ${channel.title}`, tag.YOUTUBE);
+            logger.info(
+                `Authentication succeed channel: ${channel.title}`,
+                tag.YOUTUBE
+            );
             player.setYoutubeChannel(channel);
         } catch (error) {
             logger.error(`Error on authentication ${error.message}`, {
@@ -447,20 +454,28 @@ app.on("ready", async () => {
                 ...tag.YOUTUBE
             });
         }
-        
+
         player.updateLoading("Starting Bot...");
-        try {
-            await stopBot();
-            await startBot(config.telegramBotToken);
-            config.telegramBotTokenValid = true;
-        } catch (error) {
-            config.telegramBotTokenValid = false;
-            logger.error(`couldnt start bot`, {
-                error: makeError(error),
-                ...tag.TELEGRAM
-            });
+        let loadBot = true;
+        if (bot) {
+            if (bot.isPolling()) {
+                loadBot = false;
+            }
         }
-        
+        if (loadBot) {
+            try {
+                await stopBot();
+                await startBot(config.telegramBotToken);
+                config.telegramBotTokenValid = true;
+            } catch (error) {
+                config.telegramBotTokenValid = false;
+                logger.error(`couldnt start bot`, {
+                    error: makeError(error),
+                    ...tag.TELEGRAM
+                });
+            }
+        }
+
         config = teletubeData.saveConfig(config).getConfig();
 
         player.loading(false);
@@ -482,11 +497,6 @@ app.on("ready", async () => {
         player.notifyDevice(devices);
     });
 
-    // Check Expired Songs every 10 min
-    INTERVAL_CHECKEXPIRED_ID = setInterval(() => {
-        checkExpiredsongs(true);
-    }, 10 * 60 * 1000);
-
     ipcMain.on(`device-play`, (e, song) => {
         player.devicePlay(song);
     });
@@ -501,6 +511,11 @@ app.on("ready", async () => {
 
     ipcMain.on(`device-seek`, (e, time) => {
         player.deviceSeek();
+    });
+
+    ipcMain.on(`shuffle-playlist`, (e, {}) => {
+        player.updatePlaylist(teletubeData.shuffle().getPlaylist());
+        player.remoteShuffleEnd();
     });
 
     ipcMain.on(`device-resume`, e => {

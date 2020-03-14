@@ -1,11 +1,11 @@
 import React from "react";
 import { PageHeader, Tag, Drawer, Button } from "antd";
 import {
-    DesktopOutlined,
     SoundOutlined,
     LoadingOutlined,
     SettingOutlined
 } from "@ant-design/icons";
+import Cast from '../assets/svg/cast';
 import Config from "./Config";
 
 class Status extends React.Component {
@@ -121,23 +121,15 @@ class Status extends React.Component {
                     tags={this.state.currentConfig != null && this.state.currentConfig.telegramBotTokenValid ? <Tag color="green">Bot Running</Tag> : <Tag color="red">Bot Stopped</Tag>}
                     extra={[
                         <Button
-                            key={0}
-                            shape="circle"
-                            icon={<SettingOutlined />}
-                            style={{ marginRight: 10, border: "none" }}
-                            onClick={() => {
-                                this.setState({ configVisible: true });
-                            }}
-                        />,
-                        <Button
                             key={1}
+                            className="tt-btn"
                             disabled={this.props.devices.length < 1}
                             shape="circle"
                             icon={
                                 this.props.loadingDevice ? (
                                     <LoadingOutlined />
                                 ) : (
-                                    <DesktopOutlined
+                                    <Cast
                                         style={{
                                             color: this.props.device
                                                 ? "#e91e63"
@@ -148,6 +140,15 @@ class Status extends React.Component {
                             }
                             style={{ border: "none" }}
                             onClick={this.showDevices.bind(this)}
+                        />,
+                        <Button
+                            key={0}
+                            className="tt-btn"
+                            shape="circle"
+                            icon={<SettingOutlined />}
+                            onClick={() => {
+                                this.setState({ configVisible: true });
+                            }}
                         />
                     ]}
                 />

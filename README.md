@@ -37,6 +37,8 @@ Ideal for THE office speaker.
 
 `/list` Alias for `/playlist`
 
+`/stop` Stop player
+
 `/volume $level` Sets the volume to the level specified by `$level`. Moves from 1 to 100
 
 `/controls` Show buttons on the user's chat to control the player 
@@ -47,7 +49,6 @@ Ideal for THE office speaker.
 
 # TODO
 ### ui
-- notification system
 - seek time on googlecast
 - change volume on googlecast
 ### logger
@@ -56,14 +57,13 @@ Ideal for THE office speaker.
 - skip song after trying to play x times
 ### google cast
 ### youtube
-- add youtube oauth
+- add youtube logout
 ### telegram
 - limit bot to ceratin channels
 - add `/search` command
 - add `/loop true|false` command
 - delete songs
 ### playlists
-- multiple playlists
 - export playlist
 - import playlist
 ### test

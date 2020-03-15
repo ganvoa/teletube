@@ -112,6 +112,20 @@ class App extends React.Component {
         });
     }
 
+    onStop() {
+        console.log(`stopping player`);
+        this.setState(
+            {
+                currentSong: null,
+                nextSong: null,
+                prevSong: null
+            },
+            () => {
+                this.saveStatus();
+            }
+        );
+    }
+
     onPlay(song) {
         console.log(`playing song ${song.uid} - ${song.title}`);
         this.setState(
@@ -218,6 +232,7 @@ class App extends React.Component {
                             nextSong={this.state.nextSong}
                             prevSong={this.state.prevSong}
                             onPlay={this.onPlay.bind(this)}
+                            onStop={this.onStop.bind(this)}
                         />
                     </Col>
                     <Col

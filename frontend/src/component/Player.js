@@ -133,6 +133,10 @@ class Player extends React.Component {
             this.onNextSong();
         });
 
+        ipcRenderer.on(`stop`, e => {
+            this.onStop();
+        });
+
         ipcRenderer.on(`set-volume`, (e, volume) => {
             console.log(`setting volume to ${volume}`);
             this.setVolume(volume);
@@ -234,6 +238,27 @@ class Player extends React.Component {
                 console.error(`error on play: ${error.message}`)
             }
         }
+    }
+
+    onStop() {
+        this.setState({
+            currentSong: null
+        });
+
+        if (this.state.device) {
+            const { ipcRenderer } = window.require("electron");
+            ipcRenderer.send(`device-stop`, {});
+            return;
+        }
+
+        try {
+            this.player.pause();
+            this.player.currentTime = 0;
+        } catch (err) {
+            console.error(`error on stop: ${err.message}`)
+        }
+
+        this.props.onStop();
     }
 
     onPlay(song) {

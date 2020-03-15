@@ -22,6 +22,7 @@ class App extends React.Component {
             device: null,
             loop: false,
             isLoading: true,
+            isPlaying: false,
             loadingMessage: "Preparing Everything...",
             loadingDevice: false,
             playlists: [],
@@ -62,20 +63,29 @@ class App extends React.Component {
 
     loadPlaylists(playlists) {
         this.setState({
-            playlists: playlists,
+            playlists: playlists
+        });
+    }
+
+    updateIsPlaying(isPlaying) {
+        this.setState({
+            isPlaying: isPlaying
         });
     }
 
     loadStatus(config) {
-        this.setState({
-            currentPlaylist: config.currentPlaylist,
-            currentSong: config.currentSong,
-            prevSong: config.prevSong,
-            nextSong: config.nextSong,
-            loop: config.loop
-        }, () => {
-            this.updatePrevNext();
-        });
+        this.setState(
+            {
+                currentPlaylist: config.currentPlaylist,
+                currentSong: config.currentSong,
+                prevSong: config.prevSong,
+                nextSong: config.nextSong,
+                loop: config.loop
+            },
+            () => {
+                this.updatePrevNext();
+            }
+        );
     }
 
     saveStatus() {
@@ -164,7 +174,10 @@ class App extends React.Component {
         });
         let prevSong = null;
         if (index >= 1) prevSong = this.state.currentPlaylist.tracks[index - 1];
-        else if (this.state.loop && this.state.currentPlaylist.tracks.length > 0) {
+        else if (
+            this.state.loop &&
+            this.state.currentPlaylist.tracks.length > 0
+        ) {
             prevSong = this.state.currentPlaylist.tracks[
                 this.state.currentPlaylist.tracks.length - 1
             ];
@@ -244,6 +257,7 @@ class App extends React.Component {
                             nextSong={this.state.nextSong}
                             prevSong={this.state.prevSong}
                             onPlay={this.onPlay.bind(this)}
+                            updateIsPlaying={this.updateIsPlaying.bind(this)}
                             onStop={this.onStop.bind(this)}
                         />
                     </Col>
@@ -272,6 +286,7 @@ class App extends React.Component {
                             <Col span={24}>
                                 <Playlist
                                     playlists={this.state.playlists}
+                                    isPlaying={this.state.isPlaying}
                                     playlist={this.state.currentPlaylist}
                                     currentSong={this.state.currentSong}
                                     onLoopChange={this.onLoopChange.bind(this)}

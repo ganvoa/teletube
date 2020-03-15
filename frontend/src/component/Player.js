@@ -54,8 +54,7 @@ class Player extends React.Component {
         });
 
         this.player.addEventListener("error", err => {
-            console.error(err);
-            // this.refreshSong(this.state.currentSong);
+            this.refreshSong(this.state.currentSong);
         });
 
         this.player.addEventListener("play", () => {
@@ -107,14 +106,25 @@ class Player extends React.Component {
         ipcRenderer.on(`device-status`, (e, state, duration, status) => {
             console.log(status);
             if (state === "PLAYING") {
-                this.setState({
-                    duration: duration === 0 ? this.state.duration : duration,
-                    isPlaying: true
-                });
+                this.setState(
+                    {
+                        duration:
+                            duration === 0 ? this.state.duration : duration,
+                        isPlaying: true
+                    },
+                    () => {
+                        this.props.updateIsPlaying(true);
+                    }
+                );
             } else {
-                this.setState({
-                    isPlaying: false
-                });
+                this.setState(
+                    {
+                        isPlaying: false
+                    },
+                    () => {
+                        this.props.updateIsPlaying(false);
+                    }
+                );
             }
         });
 
@@ -176,27 +186,43 @@ class Player extends React.Component {
 
     loadStatus(status) {
         if (status.currentSong) {
-            this.setState({
-                currentSong: status.currentSong
-            });
-            this.player.src = status.currentSong.audioUrl;
-            this.player.load();
+            if (
+                this.state.currentSong &&
+                status.currentSong.src !== this.state.currentSong.src
+            ) {
+                this.setState({
+                    currentSong: status.currentSong
+                });
+                this.player.src = status.currentSong.audioUrl;
+                this.player.load();
+            }
         } else {
-            this.setState({currentSong: null});
+            this.setState({ currentSong: null });
             this.player.pause();
+            this.player.currentTime = 0;
         }
     }
 
     play() {
-        this.setState({
-            isPlaying: true
-        });
+        this.setState(
+            {
+                isPlaying: true
+            },
+            () => {
+                this.props.updateIsPlaying(true);
+            }
+        );
     }
 
     pause() {
-        this.setState({
-            isPlaying: false
-        });
+        this.setState(
+            {
+                isPlaying: false
+            },
+            () => {
+                this.props.updateIsPlaying(false);
+            }
+        );
     }
 
     loadedMetadata() {
@@ -218,8 +244,9 @@ class Player extends React.Component {
     }
 
     refreshSong(song) {
-
-        console.info(`Could play current song, refresh song request for ${song.title}`);
+        console.info(
+            `Could play current song, refresh song request for ${song.title}`
+        );
         const { ipcRenderer } = window.require("electron");
         if (this.props.playlist)
             ipcRenderer.send(`refresh-song`, this.props.playlist.uid, song);
@@ -236,7 +263,7 @@ class Player extends React.Component {
             try {
                 this.player.play();
             } catch (error) {
-                console.error(`error on play: ${error.message}`)
+                console.error(`error on play: ${error.message}`);
             }
         }
     }
@@ -256,7 +283,7 @@ class Player extends React.Component {
             this.player.pause();
             this.player.currentTime = 0;
         } catch (err) {
-            console.error(`error on stop: ${err.message}`)
+            console.error(`error on stop: ${err.message}`);
         }
 
         this.props.onStop();
@@ -281,7 +308,7 @@ class Player extends React.Component {
             this.player.play();
             this.props.onPlay(song);
         } catch (err) {
-            console.error(`error on play: ${err.message}`)
+            console.error(`error on play: ${err.message}`);
         }
     }
 
@@ -302,9 +329,9 @@ class Player extends React.Component {
 
         if (this.player.paused) {
             try {
-                this.player.play();   
+                this.player.play();
             } catch (error) {
-                console.error(`error on play: ${error.message}`)
+                console.error(`error on play: ${error.message}`);
             }
         } else {
             this.player.pause();

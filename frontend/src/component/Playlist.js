@@ -401,10 +401,10 @@ class Playlist extends React.Component {
                                         this.props.currentSong.uid ===
                                             item.uid ? (
                                             <div id="bars">
-                                                <div className="bar" />
-                                                <div className="bar" />
-                                                <div className="bar" />
-                                                <div className="bar" />
+                                                <div className="bar" style={{ animationPlayState: this.props.isPlaying ? 'running': 'paused'}} />
+                                                <div className="bar" style={{ animationPlayState: this.props.isPlaying ? 'running': 'paused'}} />
+                                                <div className="bar" style={{ animationPlayState: this.props.isPlaying ? 'running': 'paused'}} />
+                                                <div className="bar" style={{ animationPlayState: this.props.isPlaying ? 'running': 'paused'}} />
                                             </div>
                                         ) : (
                                             <Button

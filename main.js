@@ -502,16 +502,16 @@ const refreshSong = async (playlistId, song, notify, play) => {
         let updatedSong = await getAudioUrl(song);
         logger.info(`got audio url for ${song.uid}`, tag.YOUTUBE);
         teletubeData.updateSong(playlistId, updatedSong);
-        if (player && play) player.remotePlay(updatedSong);
         if (player && notify) {
             player.loadStatus(teletubeData.getStatus());
         }
+        if (player && play) player.remotePlay(updatedSong);
     } catch (error) {
         logger.error(makeError(error), tag.YOUTUBE);
-        if (player && play) player.remoteSkip();
         if (player && notify) {
             player.loadStatus(teletubeData.getStatus());
         }
+        if (player && play) player.remoteSkip();
     }
 };
 

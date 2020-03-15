@@ -139,7 +139,9 @@ class App extends React.Component {
         let prevSong = null;
         if (index >= 1) prevSong = this.state.playlist.tracks[index - 1];
         else if (this.state.loop && this.state.playlist.tracks.length > 0) {
-            prevSong = this.state.playlist.tracks[this.state.playlist.tracks.length - 1];
+            prevSong = this.state.playlist.tracks[
+                this.state.playlist.tracks.length - 1
+            ];
         }
         let nextSong = null;
         if (index < this.state.playlist.tracks.length - 1)

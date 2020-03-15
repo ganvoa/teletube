@@ -54,17 +54,18 @@ const startBot = async telegramBotToken => {
             logger.info(`got song ${song.uid} - ${song.title}`, tag.YOUTUBE);
             song = await getAudioUrl(song);
             logger.info(`got audio url for song ${song.uid}`, tag.YOUTUBE);
-            bot.notify(
-                chatId,
-                `Se está reproduciendo la canción: ${song.title}`
-            );
             let playlistId = teletubeData.getStatus().currentPlaylist.uid;
+            logger.info(`updating playlist ${playlistId}`, tag.MAIN);
             player.updatePlaylist(
                 teletubeData
                     .putSongNext(playlistId, song)
                     .getPlaylist(playlistId)
             );
             player.remotePlay(song);
+            bot.notify(
+                chatId,
+                `Se está reproduciendo la canción: ${song.title}`
+            );
         } catch (error) {
             bot.notify(chatId, `Error: ${error.message}`);
             logger.error(`error on command /play ${query}`, {
@@ -171,7 +172,7 @@ const startBot = async telegramBotToken => {
             player.remoteShuffleStart();
             let playlistId = teletubeData.getStatus().currentPlaylist.uid;
             player.updatePlaylist(
-                teletubeData.shuffle(playlistId).getPlaylist()
+                teletubeData.shuffle(playlistId).getPlaylist(playlistId)
             );
             setTimeout(() => {
                 player.remoteShuffleEnd();
@@ -502,6 +503,7 @@ app.on("ready", async () => {
         player.loadStatus(status);
         player.updatePlaylist(playlist);
         logger.info(`playlist loaded`, tag.MAIN);
+        player.sendPlaylists(teletubeData.getPlaylists());
     });
 
     const client = new ChromecastAPI();
@@ -527,25 +529,44 @@ app.on("ready", async () => {
         player.deviceSeek();
     });
 
+    ipcMain.on(`select-playlist`, (e, playlistId) => {
+        let playlist = teletubeData.getPlaylist(playlistId);
+        let status = teletubeData.getStatus();
+        status.currentSong = null;
+        status.nextSong = null;
+        status.prevSong = null;
+        status.currentPlaylist = {
+            name: playlist.name,
+            uid: playlist.uid,
+            countSongs: playlist.tracks.length
+        };
+        teletubeData.saveStatus(status);
+        player.updatePlaylist(playlist);
+        player.loadStatus(status);
+    });
+
     ipcMain.on(`create-playlist`, (e, playlistName) => {
         let isSuccess = false;
         let msg = null;
-        if (playlistName === '') {
+        if (playlistName === "") {
             isSuccess = false;
-            msg = 'Invalid name!';
+            msg = "Invalid name!";
             player.createPlaylistResponse(isSuccess, msg);
         } else {
             isSuccess = true;
-            msg = 'Playlist created';
+            msg = "Playlist created";
             let playlistId = teletubeData.addPlaylist(playlistName);
             player.createPlaylistResponse(isSuccess, msg);
+            player.sendPlaylists(teletubeData.getPlaylists());
             let playlist = teletubeData.getPlaylist(playlistId);
             player.updatePlaylist(playlist);
         }
     });
 
     ipcMain.on(`shuffle-playlist`, (e, playlistId) => {
-        player.updatePlaylist(teletubeData.shuffle(playlistId).getPlaylist());
+        player.updatePlaylist(
+            teletubeData.shuffle(playlistId).getPlaylist(playlistId)
+        );
         player.remoteShuffleEnd();
     });
 
@@ -606,7 +627,7 @@ app.on("ready", async () => {
 
     ipcMain.on(`delete-song`, (e, playlistId, song) => {
         player.updatePlaylist(
-            teletubeData.deleteSong(playlistId, song).getPlaylist()
+            teletubeData.deleteSong(playlistId, song).getPlaylist(playlistId)
         );
     });
 });

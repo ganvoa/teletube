@@ -15,6 +15,7 @@ class App extends React.Component {
         super(props);
 
         this.state = {
+            currentPlaylist: null,
             currentSong: null,
             prevSong: null,
             nextSong: null,
@@ -23,7 +24,7 @@ class App extends React.Component {
             isLoading: true,
             loadingMessage: "Preparing Everything...",
             loadingDevice: false,
-            playlist: [],
+            playlist: null,
             devices: []
         };
     }
@@ -57,6 +58,7 @@ class App extends React.Component {
 
     loadStatus(config) {
         this.setState({
+            currentPlaylist: config.currentPlaylist,
             currentSong: config.currentSong,
             prevSong: config.prevSong,
             nextSong: config.nextSong,
@@ -66,6 +68,7 @@ class App extends React.Component {
 
     saveStatus() {
         let status = {
+            currentPlaylist: this.state.currentPlaylist,
             currentSong: this.state.currentSong,
             prevSong: this.state.prevSong,
             nextSong: this.state.nextSong,
@@ -123,25 +126,26 @@ class App extends React.Component {
 
     updatePrevNext() {
         if (!this.state.currentSong) return;
+        if (!this.state.currentPlaylist) return;
 
         let search = this.state.currentSong.uid;
         let index = 0;
-        this.state.playlist.forEach((element, key) => {
-            console.log(`#${key} - ${element.uid} - ${element.title}`);
+        this.state.playlist.tracks.forEach((element, key) => {
+            // console.log(`#${key} - ${element.uid} - ${element.title}`);
             if (element.uid === search) {
                 index = key;
             }
         });
         let prevSong = null;
-        if (index >= 1) prevSong = this.state.playlist[index - 1];
-        else if (this.state.loop && this.state.playlist.length > 0) {
-            prevSong = this.state.playlist[this.state.playlist.length - 1];
+        if (index >= 1) prevSong = this.state.playlist.tracks[index - 1];
+        else if (this.state.loop && this.state.playlist.tracks.length > 0) {
+            prevSong = this.state.playlist.tracks[this.state.playlist.tracks.length - 1];
         }
         let nextSong = null;
-        if (index < this.state.playlist.length - 1)
-            nextSong = this.state.playlist[index + 1];
+        if (index < this.state.playlist.tracks.length - 1)
+            nextSong = this.state.playlist.tracks[index + 1];
         else if (this.state.loop) {
-            nextSong = this.state.playlist[0];
+            nextSong = this.state.playlist.tracks[0];
         }
         if (prevSong)
             console.log(`canción anterior ${prevSong.uid} - ${prevSong.title}`);

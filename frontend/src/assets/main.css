@@ -14,6 +14,9 @@
     background: transparent;
     cursor: pointer;
 }
+*, *:active, *:hover, *:visited, *:focus {
+    outline: none;
+}
 .tt-icon {
     cursor: pointer;
 }
@@ -29,7 +32,7 @@
     border: none;
     background: transparent;
 }
-* {
+*:not(input) {
     cursor: default;
 }
 

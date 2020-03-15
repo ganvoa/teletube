@@ -9,18 +9,58 @@ import {
     Dropdown,
     Menu,
     Button,
-    Switch
+    Switch,
+    Popover,
+    Input
 } from "antd";
-
 import Shuffle from "../assets/svg/shuffle";
+import playlistSvg from "../assets/svg/playlist.svg";
 
 import {
     DeleteFilled,
     CaretRightOutlined,
     MoreOutlined,
     RetweetOutlined,
-    LoadingOutlined
+    LoadingOutlined,
+    PlusOutlined,
+    EditOutlined,
+    CloseOutlined
 } from "@ant-design/icons";
+
+const Search = Input.Search;
+const CreatePlaylistContent = ({ error, isLoading, onSubmit }) => (
+    <>
+        <Search
+            prefix={<EditOutlined />}
+            placeholder="Playlist Name"
+            onSearch={onSubmit}
+            loading={isLoading}
+            disabled={isLoading}
+            enterButton={<PlusOutlined disabled={isLoading} />}
+        />
+        {error !== null ? (
+            <div className="ant-form-item-error">{error}</div>
+        ) : null}
+    </>
+);
+const CreatePlaylistTitle = ({ disabled, onClose }) => (
+    <div
+        style={{
+            justifyContent: "space-between",
+            display: "flex"
+        }}
+    >
+        <span>Create Playlist</span>
+        <Button
+            className="tt-btn"
+            shape="circle"
+            onClick={onClose}
+            size="small"
+            disabled={disabled}
+            icon={<CloseOutlined />}
+        ></Button>
+    </div>
+);
 class Playlist extends React.Component {
     menu = (currentSong, song) => (
         <Menu>
@@ -42,8 +82,11 @@ class Playlist extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            playlist: [],
-            shuffling: false
+            playlist: null,
+            shuffling: false,
+            showCreatePlaylist: false,
+            showLoadingCreatePlaylist: false,
+            errorCreatePlaylist: null
         };
     }
 
@@ -65,6 +108,10 @@ class Playlist extends React.Component {
                 shuffling: false
             });
         });
+
+        ipcRenderer.on(`create-playlist-response`, (e, isSucces, msg) => {
+            this.onResponseCreatePlaylist(isSucces, msg)
+        });
     }
 
     onPlaylist(playlist) {
@@ -84,7 +131,7 @@ class Playlist extends React.Component {
     onDeleteSong(song) {
         console.log(`delete ${song.title}`);
         const { ipcRenderer } = window.require("electron");
-        ipcRenderer.send(`delete-song`, song);
+        ipcRenderer.send(`delete-song`, this.state.playlist.uid, song);
     }
 
     onShuffleEnd() {
@@ -98,48 +145,107 @@ class Playlist extends React.Component {
             shuffling: true
         });
         const { ipcRenderer } = window.require("electron");
-        ipcRenderer.send(`shuffle-playlist`, {});
+        ipcRenderer.send(`shuffle-playlist`, this.state.playlist.uid);
     }
+
+    showCreatePlaylist = () => {
+        this.setState({
+            showCreatePlaylist: true,
+            errorCreatePlaylist: null
+        });
+    };
+
+    hideCreatePlaylist = () => {
+        this.setState({
+            showCreatePlaylist: false
+        });
+    };
+
+    onResponseCreatePlaylist = (isSuccess, msg) => {
+        if (isSuccess) {
+            this.setState({
+                showCreatePlaylist: false,
+                showLoadingCreatePlaylist: false,
+                errorCreatePlaylist: null
+            });
+        } else {
+            this.setState({
+                showCreatePlaylist: true,
+                showLoadingCreatePlaylist: false,
+                errorCreatePlaylist: msg
+            });
+        }
+    };
+
+    onSubmitCreatePlaylist = playlistName => {
+        this.setState({ showLoadingCreatePlaylist: true });
+        const { ipcRenderer } = window.require("electron");
+        ipcRenderer.send(`create-playlist`, playlistName);
+        setTimeout(() => {
+            this.setState({
+                showLoadingCreatePlaylist: false,
+                errorCreatePlaylist: "Invalid name!"
+            });
+        }, 1000);
+    };
 
     render() {
         return (
             <div>
                 <PageHeader
-                    title="Playlist"
-                    subTitle={`${this.state.playlist.length} song${
-                        this.state.playlist.length !== 1 ? "s" : ""
-                    }`}
-                    extra={[
-                        <Button
-                            key={0}
-                            shape="circle"
-                            className="tt-btn"
-                            disabled={this.state.shuffling}
-                            icon={
-                                this.state.shuffling ? (
-                                    <LoadingOutlined
-                                        style={{
-                                            color: "#e91e63"
-                                        }}
-                                    />
-                                ) : (
-                                    <Shuffle />
-                                )
-                            }
-                            style={{ marginRight: 20, border: "none" }}
-                            onClick={this.onShuffleRequest.bind(this)}
-                        />,
-                        <Switch
-                            key={1}
-                            checkedChildren={<RetweetOutlined />}
-                            unCheckedChildren={<RetweetOutlined />}
-                            defaultChecked
-                            checked={this.props.loop}
-                            onClick={this.props.onLoopChange}
-                        />
-                    ]}
+                    title={this.state.playlist ? this.state.playlist.name : ""}
+                    subTitle={
+                        this.state.playlist
+                            ? `${this.state.playlist.tracks.length} song${
+                                  this.state.playlist.tracks.length !== 1
+                                      ? "s"
+                                      : ""
+                              }`
+                            : null
+                    }
+                    extra={
+                        this.state.playlist === null
+                            ? []
+                            : [
+                                  <Button
+                                      key={0}
+                                      shape="circle"
+                                      className="tt-btn"
+                                      disabled={
+                                          this.state.playlist === null ||
+                                          this.state.shuffling
+                                      }
+                                      icon={
+                                          this.state.shuffling ? (
+                                              <LoadingOutlined
+                                                  style={{
+                                                      color: "#e91e63"
+                                                  }}
+                                              />
+                                          ) : (
+                                              <Shuffle />
+                                          )
+                                      }
+                                      style={{
+                                          marginRight: 20,
+                                          border: "none"
+                                      }}
+                                      onClick={this.onShuffleRequest.bind(this)}
+                                  />,
+                                  <Switch
+                                      key={1}
+                                      checkedChildren={<RetweetOutlined />}
+                                      unCheckedChildren={<RetweetOutlined />}
+                                      defaultChecked
+                                      disabled={this.state.playlist === null}
+                                      checked={this.props.loop}
+                                      onClick={this.props.onLoopChange}
+                                  />
+                              ]
+                    }
                 />
-                {this.state.playlist.length > 0 ? (
+                {this.state.playlist &&
+                this.state.playlist.tracks.length > 0 ? (
                     <List
                         style={{
                             overflowY: "auto",
@@ -148,7 +254,7 @@ class Playlist extends React.Component {
                             minHeigh: "calc(100vh - 128px)"
                         }}
                         bordered
-                        dataSource={this.state.playlist}
+                        dataSource={this.state.playlist.tracks}
                         renderItem={item => (
                             <List.Item
                                 className={
@@ -223,6 +329,56 @@ class Playlist extends React.Component {
                             </List.Item>
                         )}
                     />
+                ) : this.state.playlist === null ? (
+                    <Row
+                        justify="space-around"
+                        align="middle"
+                        style={{ height: "calc(100vh - 200px)" }}
+                    >
+                        <Col span={24}>
+                            <Empty
+                                image={playlistSvg}
+                                description={"Select or Create a Playlist"}
+                            >
+                                <Popover
+                                    visible={this.state.showCreatePlaylist}
+                                    content={
+                                        <CreatePlaylistContent
+                                            onSubmit={
+                                                this.onSubmitCreatePlaylist
+                                            }
+                                            error={
+                                                this.state.errorCreatePlaylist
+                                            }
+                                            isLoading={
+                                                this.state
+                                                    .showLoadingCreatePlaylist
+                                            }
+                                        />
+                                    }
+                                    title={
+                                        <CreatePlaylistTitle
+                                            disabled={
+                                                this.state
+                                                    .showLoadingCreatePlaylist
+                                            }
+                                            onClose={this.hideCreatePlaylist}
+                                        />
+                                    }
+                                    trigger="click"
+                                    placement="bottom"
+                                >
+                                    <Button
+                                        type={"primary"}
+                                        icon={<PlusOutlined />}
+                                        onClick={this.showCreatePlaylist}
+                                    >
+                                        Create Playlist
+                                    </Button>
+                                </Popover>
+                            </Empty>
+                        </Col>
+                    </Row>
                 ) : (
                     <Row
                         justify="space-around"

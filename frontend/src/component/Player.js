@@ -212,7 +212,8 @@ class Player extends React.Component {
 
     refreshSong(song) {
         const { ipcRenderer } = window.require("electron");
-        ipcRenderer.send(`refresh-song`, song);
+        if (this.playlist)
+            ipcRenderer.send(`refresh-song`, this.playlist.uid, song);
     }
 
     onResume() {

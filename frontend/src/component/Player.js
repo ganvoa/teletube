@@ -54,7 +54,8 @@ class Player extends React.Component {
         });
 
         this.player.addEventListener("error", err => {
-            this.refreshSong(this.state.currentSong);
+            console.error(err);
+            // this.refreshSong(this.state.currentSong);
         });
 
         this.player.addEventListener("play", () => {

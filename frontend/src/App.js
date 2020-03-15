@@ -156,24 +156,24 @@ class App extends React.Component {
 
         let search = this.state.currentSong.uid;
         let index = 0;
-        this.state.playlist.tracks.forEach((element, key) => {
+        this.state.currentPlaylist.tracks.forEach((element, key) => {
             // console.log(`#${key} - ${element.uid} - ${element.title}`);
             if (element.uid === search) {
                 index = key;
             }
         });
         let prevSong = null;
-        if (index >= 1) prevSong = this.state.playlist.tracks[index - 1];
-        else if (this.state.loop && this.state.playlist.tracks.length > 0) {
-            prevSong = this.state.playlist.tracks[
-                this.state.playlist.tracks.length - 1
+        if (index >= 1) prevSong = this.state.currentPlaylist.tracks[index - 1];
+        else if (this.state.loop && this.state.currentPlaylist.tracks.length > 0) {
+            prevSong = this.state.currentPlaylist.tracks[
+                this.state.currentPlaylist.tracks.length - 1
             ];
         }
         let nextSong = null;
-        if (index < this.state.playlist.tracks.length - 1)
-            nextSong = this.state.playlist.tracks[index + 1];
+        if (index < this.state.currentPlaylist.tracks.length - 1)
+            nextSong = this.state.currentPlaylist.tracks[index + 1];
         else if (this.state.loop) {
-            nextSong = this.state.playlist.tracks[0];
+            nextSong = this.state.currentPlaylist.tracks[0];
         }
         if (prevSong)
             console.log(`canción anterior ${prevSong.uid} - ${prevSong.title}`);
@@ -240,7 +240,7 @@ class App extends React.Component {
                             )}
                             onDeviceSelected={this.onDeviceSelected.bind(this)}
                             device={this.state.device}
-                            playlist={this.state.playlist}
+                            playlist={this.state.currentPlaylist}
                             nextSong={this.state.nextSong}
                             prevSong={this.state.prevSong}
                             onPlay={this.onPlay.bind(this)}

@@ -85,8 +85,8 @@ const startBot = async telegramBotToken => {
             let playlistId = teletubeData.getStatus().currentPlaylist.uid;
             logger.info(`updating playlist ${playlistId}`, tag.MAIN);
             teletubeData.putSongNext(playlistId, song);
-            player.remotePlay(song);
             player.loadStatus(teletubeData.getStatus());
+            player.remotePlay(song);
             bot.notify(
                 chatId,
                 `Se está reproduciendo la canción: ${song.title}`
@@ -415,7 +415,7 @@ const startBot = async telegramBotToken => {
         try {
             let song = teletubeData.getStatus().currentSong;
 
-            if (!currentSong) {
+            if (song == null) {
                 throw new Error(`theres no current song`);
             }
 

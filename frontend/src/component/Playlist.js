@@ -12,7 +12,8 @@ import {
     Switch,
     Popover,
     Input,
-    Select
+    Select,
+    Popconfirm
 } from "antd";
 import Shuffle from "../assets/svg/shuffle";
 import playlistSvg from "../assets/svg/playlist.svg";
@@ -273,15 +274,25 @@ class Playlist extends React.Component {
                                 </Popover>
                             ) : null,
                             this.props.playlist !== null ? (
-                                <Button key={3}
-                                    className="tt-btn"
-                                    shape="circle"
-                                    size="small"
-                                    icon={<DeleteFilled />}
-                                    onClick={() => {
-                                        this.deletePlaylist(this.props.playlist.uid)
+                                <Popconfirm
+                                    key={3}
+                                    placement="bottom"
+                                    title="Are you sure?"
+                                    onConfirm={() => {
+                                        this.deletePlaylist(
+                                            this.props.playlist.uid
+                                        );
                                     }}
-                                />
+                                    okText="Yes"
+                                    cancelText="No"
+                                >
+                                    <Button
+                                        className="tt-btn"
+                                        shape="circle"
+                                        size="small"
+                                        icon={<DeleteFilled />}
+                                    />
+                                </Popconfirm>
                             ) : null,
                             this.props.playlist !== null ? (
                                 <Button
@@ -479,7 +490,7 @@ class Playlist extends React.Component {
                     <Row
                         justify="space-around"
                         align="middle"
-                        style={{ height: 300 }}
+                        style={{ height: 'calc(100vh - 128px)' }}
                     >
                         <Col>
                             <Empty description={"The playlist is empty"} />

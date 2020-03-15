@@ -84,8 +84,6 @@ class Playlist extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            playlist: null,
-            playlists: [],
             shuffling: false,
             showCreatePlaylist: false,
             showLoadingCreatePlaylist: false,
@@ -95,16 +93,6 @@ class Playlist extends React.Component {
 
     componentDidMount() {
         const { ipcRenderer } = window.require("electron");
-
-        ipcRenderer.on(`playlist`, (e, playlist) => {
-            console.log(`playlist`, playlist);
-            this.onPlaylist(playlist);
-        });
-
-        ipcRenderer.on(`playlists`, (e, playlists) => {
-            console.log(`playlists`, playlists);
-            this.onPlaylists(playlists);
-        });
 
         ipcRenderer.on(`shuffle-start`, e => {
             this.setState({
@@ -123,20 +111,6 @@ class Playlist extends React.Component {
         });
     }
 
-    onPlaylist(playlist) {
-        this.setState({
-            playlist: playlist
-        });
-
-        this.props.onPlaylist(playlist);
-    }
-
-    onPlaylists(playlists) {
-        this.setState({
-            playlists: playlists
-        });
-    }
-
     onPlaySelected(song) {
         console.log(`play ${song.title}`);
         const { ipcRenderer } = window.require("electron");
@@ -146,7 +120,7 @@ class Playlist extends React.Component {
     onDeleteSong(song) {
         console.log(`delete ${song.title}`);
         const { ipcRenderer } = window.require("electron");
-        ipcRenderer.send(`delete-song`, this.state.playlist.uid, song);
+        ipcRenderer.send(`delete-song`, this.props.playlist.uid, song);
     }
 
     onShuffleEnd() {
@@ -160,7 +134,7 @@ class Playlist extends React.Component {
             shuffling: true
         });
         const { ipcRenderer } = window.require("electron");
-        ipcRenderer.send(`shuffle-playlist`, this.state.playlist.uid);
+        ipcRenderer.send(`shuffle-playlist`, this.props.playlist.uid);
     }
 
     showCreatePlaylist = () => {
@@ -209,10 +183,15 @@ class Playlist extends React.Component {
         ipcRenderer.send(`select-playlist`, playlistId);
     };
 
+    deletePlaylist = playlistId => {
+        const { ipcRenderer } = window.require("electron");
+        ipcRenderer.send(`delete-playlist`, playlistId);
+    };
+
     render() {
         return (
             <div>
-                {this.state.playlists.length > 0 ? (
+                {this.props.playlists.length > 0 ? (
                     <PageHeader
                         title={
                             <>
@@ -220,8 +199,8 @@ class Playlist extends React.Component {
                                     prefix={<EditOutlined />}
                                     defaultValue={""}
                                     value={
-                                        this.state.playlist
-                                            ? this.state.playlist.uid
+                                        this.props.playlist
+                                            ? this.props.playlist.uid
                                             : ""
                                     }
                                     onChange={this.onSelecttPlaylist}
@@ -236,7 +215,7 @@ class Playlist extends React.Component {
                                     <Option key={0} value="" disabled>
                                         Select Playlist
                                     </Option>
-                                    {this.state.playlists.map(item => (
+                                    {this.props.playlists.map(item => (
                                         <Option key={item.uid} value={item.uid}>
                                             {item.name}
                                         </Option>
@@ -245,16 +224,16 @@ class Playlist extends React.Component {
                             </>
                         }
                         subTitle={
-                            this.state.playlist
-                                ? `${this.state.playlist.tracks.length} song${
-                                      this.state.playlist.tracks.length !== 1
+                            this.props.playlist
+                                ? `${this.props.playlist.tracks.length} song${
+                                      this.props.playlist.tracks.length !== 1
                                           ? "s"
                                           : ""
                                   }`
                                 : null
                         }
                         extra={[
-                            this.state.playlists.length > 0 ? (
+                            this.props.playlists.length > 0 ? (
                                 <Popover
                                     key={2}
                                     visible={this.state.showCreatePlaylist}
@@ -293,13 +272,24 @@ class Playlist extends React.Component {
                                     />
                                 </Popover>
                             ) : null,
-                            this.state.playlist !== null ? (
+                            this.props.playlist !== null ? (
+                                <Button key={3}
+                                    className="tt-btn"
+                                    shape="circle"
+                                    size="small"
+                                    icon={<DeleteFilled />}
+                                    onClick={() => {
+                                        this.deletePlaylist(this.props.playlist.uid)
+                                    }}
+                                />
+                            ) : null,
+                            this.props.playlist !== null ? (
                                 <Button
                                     key={0}
                                     shape="circle"
                                     className="tt-btn"
                                     disabled={
-                                        this.state.playlist === null ||
+                                        this.props.playlist === null ||
                                         this.state.shuffling
                                     }
                                     icon={
@@ -320,13 +310,13 @@ class Playlist extends React.Component {
                                     onClick={this.onShuffleRequest.bind(this)}
                                 />
                             ) : null,
-                            this.state.playlist !== null ? (
+                            this.props.playlist !== null ? (
                                 <Switch
                                     key={1}
                                     checkedChildren={<RetweetOutlined />}
                                     unCheckedChildren={<RetweetOutlined />}
                                     defaultChecked
-                                    disabled={this.state.playlist === null}
+                                    disabled={this.props.playlist === null}
                                     checked={this.props.loop}
                                     onClick={this.props.onLoopChange}
                                 />
@@ -334,8 +324,8 @@ class Playlist extends React.Component {
                         ]}
                     />
                 ) : null}
-                {this.state.playlist &&
-                this.state.playlist.tracks.length > 0 ? (
+                {this.props.playlist &&
+                this.props.playlist.tracks.length > 0 ? (
                     <List
                         style={{
                             overflowY: "auto",
@@ -344,7 +334,7 @@ class Playlist extends React.Component {
                             minHeight: "calc(100vh - 129px)"
                         }}
                         bordered
-                        dataSource={this.state.playlist.tracks}
+                        dataSource={this.props.playlist.tracks}
                         renderItem={item => (
                             <List.Item
                                 key={0}
@@ -435,7 +425,7 @@ class Playlist extends React.Component {
                             </List.Item>
                         )}
                     />
-                ) : this.state.playlist === null ? (
+                ) : this.props.playlist === null ? (
                     <Row
                         justify="space-around"
                         align="middle"

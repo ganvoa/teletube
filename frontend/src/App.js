@@ -24,7 +24,7 @@ class App extends React.Component {
             isLoading: true,
             loadingMessage: "Preparing Everything...",
             loadingDevice: false,
-            playlist: null,
+            playlists: [],
             devices: []
         };
     }
@@ -34,6 +34,10 @@ class App extends React.Component {
 
         ipcRenderer.on(`load-status`, (e, status) => {
             this.loadStatus(status);
+        });
+
+        ipcRenderer.on(`playlists`, (e, playlists) => {
+            this.loadPlaylists(playlists);
         });
 
         ipcRenderer.on(`loading`, (e, isLoading) => {
@@ -56,6 +60,12 @@ class App extends React.Component {
         });
     }
 
+    loadPlaylists(playlists) {
+        this.setState({
+            playlists: playlists,
+        });
+    }
+
     loadStatus(config) {
         this.setState({
             currentPlaylist: config.currentPlaylist,
@@ -63,6 +73,8 @@ class App extends React.Component {
             prevSong: config.prevSong,
             nextSong: config.nextSong,
             loop: config.loop
+        }, () => {
+            this.updatePrevNext();
         });
     }
 
@@ -259,8 +271,9 @@ class App extends React.Component {
                         <Row>
                             <Col span={24}>
                                 <Playlist
+                                    playlists={this.state.playlists}
+                                    playlist={this.state.currentPlaylist}
                                     currentSong={this.state.currentSong}
-                                    onPlaylist={this.onPlaylist.bind(this)}
                                     onLoopChange={this.onLoopChange.bind(this)}
                                     loop={this.state.loop}
                                 />

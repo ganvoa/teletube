@@ -84,12 +84,9 @@ const startBot = async telegramBotToken => {
             logger.info(`got audio url for song ${song.uid}`, tag.YOUTUBE);
             let playlistId = teletubeData.getStatus().currentPlaylist.uid;
             logger.info(`updating playlist ${playlistId}`, tag.MAIN);
-            player.updatePlaylist(
-                teletubeData
-                    .putSongNext(playlistId, song)
-                    .getPlaylist(playlistId)
-            );
+            teletubeData.putSongNext(playlistId, song);
             player.remotePlay(song);
+            player.loadStatus(teletubeData.getStatus());
             bot.notify(
                 chatId,
                 `Se está reproduciendo la canción: ${song.title}`
@@ -116,9 +113,8 @@ const startBot = async telegramBotToken => {
             logger.info(`got audio url for song ${song.uid}`, tag.YOUTUBE);
             bot.notify(chatId, `Se agregó la canción: ${song.title}`);
             let playlistId = teletubeData.getStatus().currentPlaylist.uid;
-            player.updatePlaylist(
-                teletubeData.addSong(playlistId, song).getPlaylist(playlistId)
-            );
+            teletubeData.addSong(playlistId, song);
+            player.loadStatus(teletubeData.getStatus());
         } catch (error) {
             bot.notify(chatId, `Error: ${error.message}`);
             logger.error(makeError(error), tag.TELEGRAM);
@@ -141,11 +137,8 @@ const startBot = async telegramBotToken => {
             logger.info(`got audio url for song ${song.uid}`, tag.YOUTUBE);
             bot.notify(chatId, `Se agregó la canción: ${song.title}`);
             let playlistId = teletubeData.getStatus().currentPlaylist.uid;
-            player.updatePlaylist(
-                teletubeData
-                    .putSongNext(playlistId, song)
-                    .getPlaylist(playlistId)
-            );
+            teletubeData.putSongNext(playlistId, song);
+            player.loadStatus(teletubeData.getStatus());
         } catch (error) {
             bot.notify(chatId, `Error: ${error.message}`);
             logger.error(makeError(error), tag.TELEGRAM);
@@ -228,9 +221,8 @@ const startBot = async telegramBotToken => {
             bot.notify(chatId, `:)`);
             player.remoteShuffleStart();
             let playlistId = teletubeData.getStatus().currentPlaylist.uid;
-            player.updatePlaylist(
-                teletubeData.shuffle(playlistId).getPlaylist(playlistId)
-            );
+            teletubeData.shuffle(playlistId);
+            player.loadStatus(teletubeData.getStatus());
             setTimeout(() => {
                 player.remoteShuffleEnd();
             }, 1000);
@@ -276,7 +268,11 @@ const startBot = async telegramBotToken => {
             };
 
             let songs = [];
-            for (let index = 1; index <= Math.min(5, playlist.tracks.length); index++) {
+            for (
+                let index = 1;
+                index <= Math.min(5, playlist.tracks.length);
+                index++
+            ) {
                 songs.push({
                     text: "▶️ " + index,
                     callback_data: "/song " + index
@@ -323,7 +319,7 @@ const startBot = async telegramBotToken => {
         }
 
         try {
-            if (typeof playlist.tracks[songIndex - 1] === 'undefined')
+            if (typeof playlist.tracks[songIndex - 1] === "undefined")
                 bot.notify(chatId, `Error: songIndex ${songIndex} invalid`);
             else {
                 let song = playlist.tracks[songIndex - 1];
@@ -507,13 +503,15 @@ const refreshSong = async (playlistId, song, notify, play) => {
         logger.info(`got audio url for ${song.uid}`, tag.YOUTUBE);
         teletubeData.updateSong(playlistId, updatedSong);
         if (player && play) player.remotePlay(updatedSong);
-        if (player && notify)
-            player.updatePlaylist(teletubeData.getPlaylist(playlistId));
+        if (player && notify) {
+            player.loadStatus(teletubeData.getStatus());
+        }
     } catch (error) {
         logger.error(makeError(error), tag.YOUTUBE);
         if (player && play) player.remoteSkip();
-        if (player && notify)
-            player.updatePlaylist(teletubeData.getPlaylist(playlistId));
+        if (player && notify) {
+            player.loadStatus(teletubeData.getStatus());
+        }
     }
 };
 
@@ -567,13 +565,8 @@ app.on("ready", async () => {
         logger.info(`loading playlist`, tag.MAIN);
         player.notifyDevice(devices);
         player.notifyDeviceSelected();
-        let playlist = null;
-        let status = teletubeData.getStatus();
-        if (status.currentPlaylist)
-            playlist = teletubeData.getPlaylist(status.currentPlaylist.uid);
-        player.loadStatus(status);
-        player.updatePlaylist(playlist);
         player.sendPlaylists(teletubeData.getPlaylists());
+        player.loadStatus(teletubeData.getStatus());
         logger.info(`playlist loaded`, tag.MAIN);
     });
 
@@ -619,13 +612,8 @@ app.on("ready", async () => {
         status.currentSong = null;
         status.nextSong = null;
         status.prevSong = null;
-        status.currentPlaylist = {
-            name: playlist.name,
-            uid: playlist.uid,
-            countSongs: playlist.tracks.length
-        };
+        status.currentPlaylist = playlist;
         teletubeData.saveStatus(status);
-        player.updatePlaylist(playlist);
         player.loadStatus(status);
     });
 
@@ -646,13 +634,14 @@ app.on("ready", async () => {
             logger.info(`playlist created`, tag.MAIN);
             let playlistId = teletubeData.addPlaylist(playlistName);
             player.createPlaylistResponse(isSuccess, msg);
-            player.sendPlaylists(teletubeData.getPlaylists());
             let playlist = teletubeData.getPlaylist(playlistId);
-            player.updatePlaylist(playlist);
             let status = teletubeData.getStatus();
+            status.currentPlaylist = playlist;
             status.currentSong = null;
             status.nextSong = null;
             status.prevSong = null;
+            teletubeData.saveStatus(status);
+            player.sendPlaylists(teletubeData.getPlaylists());
             player.loadStatus(status);
         }
     });
@@ -664,9 +653,8 @@ app.on("ready", async () => {
             player.remoteShuffleEnd();
             return;
         }
-        player.updatePlaylist(
-            teletubeData.shuffle(playlistId).getPlaylist(playlistId)
-        );
+        teletubeData.shuffle(playlistId);
+        player.loadStatus(teletubeData.getStatus());
         player.remoteShuffleEnd();
     });
 
@@ -706,6 +694,13 @@ app.on("ready", async () => {
         player.loadConfig(config);
     });
 
+    ipcMain.on(`delete-playlist`, (e, playlistId) => {
+        logger.info(`delete-playlist request ${playlistId}`, tag.MAIN);
+        let status = teletubeData.deletePlaylist(playlistId).getStatus();
+        player.sendPlaylists(teletubeData.getPlaylists());
+        player.loadStatus(status);
+    });
+
     ipcMain.on(`save-config`, async (e, updatedConfig) => {
         logger.info(`user save config`, tag.MAIN);
         logger.info(`reloading services`, tag.MAIN);
@@ -735,9 +730,9 @@ app.on("ready", async () => {
             `delete song ${song.title} from playlist ${playlistId}`,
             tag.MAIN
         );
-        player.updatePlaylist(
-            teletubeData.deleteSong(playlistId, song).getPlaylist(playlistId)
-        );
+
+        teletubeData.deleteSong(playlistId, song);
+        player.loadStatus(teletubeData.getStatus())
     });
 });
 

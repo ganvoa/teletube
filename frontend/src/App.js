@@ -214,6 +214,7 @@ class App extends React.Component {
                             )}
                             onDeviceSelected={this.onDeviceSelected.bind(this)}
                             device={this.state.device}
+                            playlist={this.state.playlist}
                             nextSong={this.state.nextSong}
                             prevSong={this.state.prevSong}
                             onPlay={this.onPlay.bind(this)}

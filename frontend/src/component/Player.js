@@ -54,7 +54,6 @@ class Player extends React.Component {
         });
 
         this.player.addEventListener("error", err => {
-            console.error(err);
             this.refreshSong(this.state.currentSong);
         });
 
@@ -177,6 +176,9 @@ class Player extends React.Component {
             });
             this.player.src = status.currentSong.audioUrl;
             this.player.load();
+        } else {
+            this.setState({currentSong: null});
+            this.player.pause();
         }
     }
 
@@ -211,9 +213,11 @@ class Player extends React.Component {
     }
 
     refreshSong(song) {
+
+        console.info(`Could play current song, refresh song request for ${song.title}`);
         const { ipcRenderer } = window.require("electron");
-        if (this.playlist)
-            ipcRenderer.send(`refresh-song`, this.playlist.uid, song);
+        if (this.props.playlist)
+            ipcRenderer.send(`refresh-song`, this.props.playlist.uid, song);
     }
 
     onResume() {
@@ -224,7 +228,11 @@ class Player extends React.Component {
         }
 
         if (this.player.paused && this.state.currentSong) {
-            this.player.play();
+            try {
+                this.player.play();
+            } catch (error) {
+                console.error(`error on play: ${error.message}`)
+            }
         }
     }
 
@@ -247,7 +255,7 @@ class Player extends React.Component {
             this.player.play();
             this.props.onPlay(song);
         } catch (err) {
-            console.error(err);
+            console.error(`error on play: ${err.message}`)
         }
     }
 
@@ -267,7 +275,11 @@ class Player extends React.Component {
         }
 
         if (this.player.paused) {
-            this.player.play();
+            try {
+                this.player.play();   
+            } catch (error) {
+                console.error(`error on play: ${error.message}`)
+            }
         } else {
             this.player.pause();
         }

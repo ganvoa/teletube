@@ -16,7 +16,11 @@
     background: transparent;
     cursor: pointer;
 }
-*, *:active, *:hover, *:visited, *:focus {
+*,
+*:active,
+*:hover,
+*:visited,
+*:focus {
     outline: none;
 }
 .tt-icon {
@@ -46,4 +50,48 @@
     background-size: 200%;
     background-position: center center;
     filter: brightness(0.3) blur(10px);
+}
+
+#bars {
+    height: 20px;
+    position: relative;
+    width: 18px;
+    float: left;
+}
+
+.bar {
+    background: #e20074;
+    bottom: 1px;
+    height: 3px;
+    position: absolute;
+    width: 3px;
+    animation: sound 0ms -800ms linear infinite alternate;
+}
+
+@keyframes sound {
+    0% {
+        opacity: 0.35;
+        height: 3px;
+    }
+    100% {
+        opacity: 1;
+        height: 13px;
+    }
+}
+
+.bar:nth-child(1) {
+    left: 1px;
+    animation-duration: 400ms;
+}
+.bar:nth-child(2) {
+    left: 5px;
+    animation-duration: 330ms;
+}
+.bar:nth-child(3) {
+    left: 9px;
+    animation-duration: 360ms;
+}
+.bar:nth-child(4) {
+    left: 13px;
+    animation-duration: 350ms;
 }

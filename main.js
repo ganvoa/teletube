@@ -14,6 +14,9 @@ app.allowRendererProcessReuse = true;
 
 let youtube = null;
 let bot = null;
+/**
+ * @type {Player}
+ */
 let player = null;
 let INTERVAL_CHECKEXPIRED_ID = null;
 let INTERVAL_CHROMECAST_ID = null;
@@ -408,6 +411,7 @@ const startBot = async telegramBotToken => {
         if (player) {
             player.loadConfig(teletubeData.getConfig());
         }
+        stopBot();
     });
     logger.info(`setting listeners`, tag.TELEGRAM);
     bot.listen();
@@ -518,6 +522,7 @@ app.on("ready", async () => {
     });
 
     ipcMain.on(`refresh-song`, (e, playlistId, song) => {
+        logger.info(`Refresh song requested for Song: ${song.title}  Playlist ${playlistId}`, tag.MAIN);
         refreshSong(playlistId, song, true, true);
     });
 
@@ -530,6 +535,7 @@ app.on("ready", async () => {
     });
 
     ipcMain.on(`select-playlist`, (e, playlistId) => {
+        logger.info(`select playlist ${playlistId}`, tag.MAIN);
         let playlist = teletubeData.getPlaylist(playlistId);
         let status = teletubeData.getStatus();
         status.currentSong = null;
@@ -548,13 +554,16 @@ app.on("ready", async () => {
     ipcMain.on(`create-playlist`, (e, playlistName) => {
         let isSuccess = false;
         let msg = null;
+        logger.info(`crete playlist with name: ${playlistName}`, tag.MAIN);
         if (playlistName === "") {
             isSuccess = false;
             msg = "Invalid name!";
             player.createPlaylistResponse(isSuccess, msg);
+            logger.warn(`coudnt create playlist, because ${msg}`, tag.MAIN);
         } else {
             isSuccess = true;
             msg = "Playlist created";
+            logger.info(`playlist created`, tag.MAIN);
             let playlistId = teletubeData.addPlaylist(playlistName);
             player.createPlaylistResponse(isSuccess, msg);
             player.sendPlaylists(teletubeData.getPlaylists());

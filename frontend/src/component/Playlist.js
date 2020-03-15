@@ -227,11 +227,11 @@ class Playlist extends React.Component {
                                     onChange={this.onSelecttPlaylist}
                                     bordered={false}
                                     style={{
-                                        width: "calc(50vw - 200px)",
-                                        fontSize: 20,
-                                        color: "#e91e63"
+                                        width: "calc(50vw - 300px)",
+                                        color: "#e91e63",
+                                        fontSize: 18
                                     }}
-                                    size="large"
+                                    size="small"
                                 >
                                     <Option key={0} value="" disabled>
                                         Select Playlist
@@ -253,52 +253,85 @@ class Playlist extends React.Component {
                                   }`
                                 : null
                         }
-                        extra={
-                            this.state.playlist === null
-                                ? []
-                                : [
-                                      <Button
-                                          key={0}
-                                          shape="circle"
-                                          className="tt-btn"
-                                          disabled={
-                                              this.state.playlist === null ||
-                                              this.state.shuffling
-                                          }
-                                          icon={
-                                              this.state.shuffling ? (
-                                                  <LoadingOutlined
-                                                      style={{
-                                                          color: "#e91e63"
-                                                      }}
-                                                  />
-                                              ) : (
-                                                  <Shuffle />
-                                              )
-                                          }
-                                          style={{
-                                              marginRight: 20,
-                                              border: "none"
-                                          }}
-                                          onClick={this.onShuffleRequest.bind(
-                                              this
-                                          )}
-                                      />,
-                                      <Switch
-                                          key={1}
-                                          checkedChildren={<RetweetOutlined />}
-                                          unCheckedChildren={
-                                              <RetweetOutlined />
-                                          }
-                                          defaultChecked
-                                          disabled={
-                                              this.state.playlist === null
-                                          }
-                                          checked={this.props.loop}
-                                          onClick={this.props.onLoopChange}
-                                      />
-                                  ]
-                        }
+                        extra={[
+                            this.state.playlists.length > 0 ? (
+                                <Popover
+                                    key={2}
+                                    visible={this.state.showCreatePlaylist}
+                                    content={
+                                        <CreatePlaylistContent
+                                            onSubmit={
+                                                this.onSubmitCreatePlaylist
+                                            }
+                                            error={
+                                                this.state.errorCreatePlaylist
+                                            }
+                                            isLoading={
+                                                this.state
+                                                    .showLoadingCreatePlaylist
+                                            }
+                                        />
+                                    }
+                                    title={
+                                        <CreatePlaylistTitle
+                                            disabled={
+                                                this.state
+                                                    .showLoadingCreatePlaylist
+                                            }
+                                            onClose={this.hideCreatePlaylist}
+                                        />
+                                    }
+                                    trigger="click"
+                                    placement="bottomLeft"
+                                >
+                                    <Button
+                                        className="tt-btn"
+                                        shape="circle"
+                                        size="small"
+                                        icon={<PlusOutlined />}
+                                        onClick={this.showCreatePlaylist}
+                                    />
+                                </Popover>
+                            ) : null,
+                            this.state.playlist !== null ? (
+                                <Button
+                                    key={0}
+                                    shape="circle"
+                                    className="tt-btn"
+                                    disabled={
+                                        this.state.playlist === null ||
+                                        this.state.shuffling
+                                    }
+                                    icon={
+                                        this.state.shuffling ? (
+                                            <LoadingOutlined
+                                                style={{
+                                                    color: "#e91e63"
+                                                }}
+                                            />
+                                        ) : (
+                                            <Shuffle />
+                                        )
+                                    }
+                                    style={{
+                                        marginRight: 20,
+                                        border: "none"
+                                    }}
+                                    onClick={this.onShuffleRequest.bind(this)}
+                                />
+                            ) : null,
+                            this.state.playlist !== null ? (
+                                <Switch
+                                    key={1}
+                                    checkedChildren={<RetweetOutlined />}
+                                    unCheckedChildren={<RetweetOutlined />}
+                                    defaultChecked
+                                    disabled={this.state.playlist === null}
+                                    checked={this.props.loop}
+                                    onClick={this.props.onLoopChange}
+                                />
+                            ) : null
+                        ]}
                     />
                 ) : null}
                 {this.state.playlist &&
@@ -306,14 +339,15 @@ class Playlist extends React.Component {
                     <List
                         style={{
                             overflowY: "auto",
-                            height: "calc(100vh - 128px)",
-                            maxHeight: "calc(100vh - 128px)",
-                            minHeigh: "calc(100vh - 128px)"
+                            height: "calc(100vh - 129px)",
+                            maxHeight: "calc(100vh - 129px)",
+                            minHeight: "calc(100vh - 129px)"
                         }}
                         bordered
                         dataSource={this.state.playlist.tracks}
                         renderItem={item => (
                             <List.Item
+                                key={0}
                                 className={
                                     this.props.currentSong &&
                                     this.props.currentSong.uid === item.uid
@@ -342,7 +376,8 @@ class Playlist extends React.Component {
                                             ellipsis
                                             style={{
                                                 maxWidth: "calc(100% - 90px)",
-                                                color: "#e91e63"
+                                                color: "#e91e63",
+                                                verticalAlign: "middle"
                                             }}
                                         >
                                             {item.title}
@@ -350,7 +385,8 @@ class Playlist extends React.Component {
                                     ) : (
                                         <Typography.Text
                                             style={{
-                                                maxWidth: "calc(100% - 90px)"
+                                                maxWidth: "calc(100% - 90px)",
+                                                verticalAlign: "middle"
                                             }}
                                             ellipsis
                                         >
@@ -359,29 +395,42 @@ class Playlist extends React.Component {
                                     )}
                                 </div>
                                 <div>
-                                    <Button
-                                        shape="circle"
-                                        size="small"
-                                        className="tt-btn"
-                                        icon={<CaretRightOutlined />}
-                                        style={{ border: "none" }}
-                                        onClick={() => {
-                                            this.onPlaySelected(item);
-                                        }}
-                                    />
-                                    <Dropdown
-                                        overlay={this.menu(
-                                            this.props.currentSong,
-                                            item
+                                    <>
+                                        {this.props.currentSong &&
+                                        this.props.currentSong.uid ===
+                                            item.uid ? (
+                                            <div id="bars">
+                                                <div className="bar" />
+                                                <div className="bar" />
+                                                <div className="bar" />
+                                                <div className="bar" />
+                                            </div>
+                                        ) : (
+                                            <Button
+                                                shape="circle"
+                                                size="small"
+                                                className="tt-btn"
+                                                icon={<CaretRightOutlined />}
+                                                style={{ border: "none" }}
+                                                onClick={() => {
+                                                    this.onPlaySelected(item);
+                                                }}
+                                            />
                                         )}
-                                    >
-                                        <Button
-                                            className="tt-btn"
-                                            size={"small"}
-                                            icon={<MoreOutlined />}
-                                            type={"link"}
-                                        />
-                                    </Dropdown>
+                                        <Dropdown
+                                            overlay={this.menu(
+                                                this.props.currentSong,
+                                                item
+                                            )}
+                                        >
+                                            <Button
+                                                className="tt-btn"
+                                                size={"small"}
+                                                icon={<MoreOutlined />}
+                                                type={"link"}
+                                            />
+                                        </Dropdown>
+                                    </>
                                 </div>
                             </List.Item>
                         )}

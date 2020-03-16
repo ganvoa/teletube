@@ -235,8 +235,8 @@ const startBot = async telegramBotToken => {
     bot.onVolume((chatId, volume) => {
         logger.info(`received command /volume ${volume}`, tag.TELEGRAM);
         try {
-            bot.notify(chatId, `:)`);
             player.setVolume(volume);
+            bot.notify(chatId, `:)`);
         } catch (error) {
             bot.notify(chatId, `Error: ${error}`);
             logger.error(makeError(error), tag.TELEGRAM);

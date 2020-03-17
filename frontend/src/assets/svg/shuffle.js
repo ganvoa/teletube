@@ -1,5 +1,5 @@
 import React from "react";
-const Shuffle = () => (
+const Shuffle = ({style}) => (
     <span className="anticon">
         <svg
             viewBox="0 0 512 512"
@@ -8,6 +8,7 @@ const Shuffle = () => (
             data-icon="setting"
             width="1em"
             height="1em"
+            style={style}
             fill="currentColor"
             aria-hidden="true"
         >

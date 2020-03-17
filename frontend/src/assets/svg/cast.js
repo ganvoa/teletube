@@ -1,5 +1,5 @@
 import React from "react";
-const Cast = () => (
+const Cast = ({style}) => (
     <span className="anticon">
         <svg
             viewBox="0 0 469.333 469.333"
@@ -9,6 +9,7 @@ const Cast = () => (
             width="1em"
             height="1em"
             fill="currentColor"
+            style={style}
             aria-hidden="true"
         >
             <g>

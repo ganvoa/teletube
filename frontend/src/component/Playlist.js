@@ -91,7 +91,7 @@ class Playlist extends React.Component {
             showLoadingCreatePlaylist: false,
             errorCreatePlaylist: null
         };
-        this.container = null;
+        this.myRef = React.createRef();
     }
 
     componentDidMount() {
@@ -339,10 +339,8 @@ class Playlist extends React.Component {
                 ) : null}
                 {this.props.playlist &&
                 this.props.playlist.tracks.length > 0 ? (
+                    <div ref={this.myRef}>
                     <List
-                        ref={node => {
-                            this.container = node;
-                        }}
                         style={{
                             overflowY: "auto",
                             height: "calc(100vh - 129px)",
@@ -350,13 +348,12 @@ class Playlist extends React.Component {
                             minHeight: "calc(100vh - 129px)"
                         }}
                         bordered
-                        dataSource={this.props.playlist.tracks}
-                        renderItem={item =>
+                    >
+                        {this.props.playlist.tracks.map(item =>
                             this.props.currentSong &&
                             this.props.currentSong.uid === item.uid ? (
-                                <Affix target={() => this.container}>
+                                <Affix key={item.uid} target={() => this.myRef.current}>
                                     <List.Item
-                                        key={item.uid}
                                         className="tt-playlist-song tt-current-playlist-song"
                                         style={{
                                             justifyContent: "space-between"
@@ -508,8 +505,9 @@ class Playlist extends React.Component {
                                     </div>
                                 </List.Item>
                             )
-                        }
-                    />
+                        )}
+                    </List>
+                    </div>
                 ) : this.props.playlist === null ? (
                     <Row
                         justify="space-around"

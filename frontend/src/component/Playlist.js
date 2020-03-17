@@ -13,7 +13,8 @@ import {
     Popover,
     Input,
     Select,
-    Popconfirm
+    Popconfirm,
+    Affix
 } from "antd";
 import Shuffle from "../assets/svg/shuffle";
 import playlistSvg from "../assets/svg/playlist.svg";
@@ -90,6 +91,7 @@ class Playlist extends React.Component {
             showLoadingCreatePlaylist: false,
             errorCreatePlaylist: null
         };
+        this.container = null;
     }
 
     componentDidMount() {
@@ -338,6 +340,9 @@ class Playlist extends React.Component {
                 {this.props.playlist &&
                 this.props.playlist.tracks.length > 0 ? (
                     <List
+                        ref={node => {
+                            this.container = node;
+                        }}
                         style={{
                             overflowY: "auto",
                             height: "calc(100vh - 129px)",
@@ -346,67 +351,136 @@ class Playlist extends React.Component {
                         }}
                         bordered
                         dataSource={this.props.playlist.tracks}
-                        renderItem={item => (
-                            <List.Item
-                                key={0}
-                                className={
-                                    this.props.currentSong &&
-                                    this.props.currentSong.uid === item.uid
-                                        ? "tt-playlist-song tt-current-playlist-song "
-                                        : "tt-playlist-song"
-                                }
-                                style={{ justifyContent: "space-between" }}
-                            >
-                                <div style={{ width: "calc(100% - 60px)" }}>
-                                    <img
-                                        alt=""
-                                        src={item.thumbnails.medium.url}
-                                        onClick={() => {
-                                            this.onPlaySelected(item);
-                                        }}
+                        renderItem={item =>
+                            this.props.currentSong &&
+                            this.props.currentSong.uid === item.uid ? (
+                                <Affix target={() => this.container}>
+                                    <List.Item
+                                        key={item.uid}
+                                        className="tt-playlist-song tt-current-playlist-song"
                                         style={{
-                                            cursor: "pointer",
-                                            width: 60,
-                                            marginRight: 20
+                                            justifyContent: "space-between"
                                         }}
-                                    />
-                                    {this.props.currentSong &&
-                                    this.props.currentSong.uid === item.uid ? (
+                                    >
+                                        <div
+                                            style={{
+                                                width: "calc(100% - 60px)"
+                                            }}
+                                        >
+                                            <img
+                                                alt=""
+                                                src={item.thumbnails.medium.url}
+                                                onClick={() => {
+                                                    this.onPlaySelected(item);
+                                                }}
+                                                style={{
+                                                    cursor: "pointer",
+                                                    width: 60,
+                                                    marginRight: 20
+                                                }}
+                                            />
+
+                                            <Typography.Text
+                                                strong
+                                                ellipsis
+                                                style={{
+                                                    maxWidth:
+                                                        "calc(100% - 90px)",
+                                                    color: "#e91e63",
+                                                    verticalAlign: "middle"
+                                                }}
+                                            >
+                                                {item.title}
+                                            </Typography.Text>
+                                        </div>
+                                        <div>
+                                            <>
+                                                <div id="bars">
+                                                    <div
+                                                        className="bar"
+                                                        style={{
+                                                            animationPlayState: this
+                                                                .props.isPlaying
+                                                                ? "running"
+                                                                : "paused"
+                                                        }}
+                                                    />
+                                                    <div
+                                                        className="bar"
+                                                        style={{
+                                                            animationPlayState: this
+                                                                .props.isPlaying
+                                                                ? "running"
+                                                                : "paused"
+                                                        }}
+                                                    />
+                                                    <div
+                                                        className="bar"
+                                                        style={{
+                                                            animationPlayState: this
+                                                                .props.isPlaying
+                                                                ? "running"
+                                                                : "paused"
+                                                        }}
+                                                    />
+                                                    <div
+                                                        className="bar"
+                                                        style={{
+                                                            animationPlayState: this
+                                                                .props.isPlaying
+                                                                ? "running"
+                                                                : "paused"
+                                                        }}
+                                                    />
+                                                </div>
+                                                <Dropdown
+                                                    overlay={this.menu(
+                                                        this.props.currentSong,
+                                                        item
+                                                    )}
+                                                >
+                                                    <Button
+                                                        className="tt-btn"
+                                                        size={"small"}
+                                                        icon={<MoreOutlined />}
+                                                        type={"link"}
+                                                    />
+                                                </Dropdown>
+                                            </>
+                                        </div>
+                                    </List.Item>
+                                </Affix>
+                            ) : (
+                                <List.Item
+                                    key={item.uid}
+                                    className="tt-playlist-song"
+                                    style={{ justifyContent: "space-between" }}
+                                >
+                                    <div style={{ width: "calc(100% - 60px)" }}>
+                                        <img
+                                            alt=""
+                                            src={item.thumbnails.medium.url}
+                                            onClick={() => {
+                                                this.onPlaySelected(item);
+                                            }}
+                                            style={{
+                                                cursor: "pointer",
+                                                width: 60,
+                                                marginRight: 20
+                                            }}
+                                        />
                                         <Typography.Text
-                                            strong
-                                            ellipsis
                                             style={{
                                                 maxWidth: "calc(100% - 90px)",
-                                                color: "#e91e63",
                                                 verticalAlign: "middle"
                                             }}
+                                            ellipsis
                                         >
                                             {item.title}
                                         </Typography.Text>
-                                    ) : (
-                                        <Typography.Text
-                                            style={{
-                                                maxWidth: "calc(100% - 90px)",
-                                                verticalAlign: "middle"
-                                            }}
-                                            ellipsis
-                                        >
-                                            {item.title}
-                                        </Typography.Text>
-                                    )}
-                                </div>
-                                <div>
-                                    <>
-                                        {this.props.currentSong &&
-                                        this.props.currentSong.uid ===
-                                            item.uid ? (
-                                            <div id="bars">
-                                                <div className="bar" style={{ animationPlayState: this.props.isPlaying ? 'running': 'paused'}} />
-                                                <div className="bar" style={{ animationPlayState: this.props.isPlaying ? 'running': 'paused'}} />
-                                                <div className="bar" style={{ animationPlayState: this.props.isPlaying ? 'running': 'paused'}} />
-                                                <div className="bar" style={{ animationPlayState: this.props.isPlaying ? 'running': 'paused'}} />
-                                            </div>
-                                        ) : (
+                                    </div>
+                                    <div>
+                                        <>
                                             <Button
                                                 shape="circle"
                                                 size="small"
@@ -417,24 +491,24 @@ class Playlist extends React.Component {
                                                     this.onPlaySelected(item);
                                                 }}
                                             />
-                                        )}
-                                        <Dropdown
-                                            overlay={this.menu(
-                                                this.props.currentSong,
-                                                item
-                                            )}
-                                        >
-                                            <Button
-                                                className="tt-btn"
-                                                size={"small"}
-                                                icon={<MoreOutlined />}
-                                                type={"link"}
-                                            />
-                                        </Dropdown>
-                                    </>
-                                </div>
-                            </List.Item>
-                        )}
+                                            <Dropdown
+                                                overlay={this.menu(
+                                                    this.props.currentSong,
+                                                    item
+                                                )}
+                                            >
+                                                <Button
+                                                    className="tt-btn"
+                                                    size={"small"}
+                                                    icon={<MoreOutlined />}
+                                                    type={"link"}
+                                                />
+                                            </Dropdown>
+                                        </>
+                                    </div>
+                                </List.Item>
+                            )
+                        }
                     />
                 ) : this.props.playlist === null ? (
                     <Row
@@ -490,7 +564,7 @@ class Playlist extends React.Component {
                     <Row
                         justify="space-around"
                         align="middle"
-                        style={{ height: 'calc(100vh - 128px)' }}
+                        style={{ height: "calc(100vh - 128px)" }}
                     >
                         <Col>
                             <Empty description={"The playlist is empty"} />

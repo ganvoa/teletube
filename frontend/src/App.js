@@ -74,7 +74,6 @@ class App extends React.Component {
     }
 
     loadStatus(config) {
-        console.log(config)
         this.setState(
             {
                 currentPlaylist: config.currentPlaylist,

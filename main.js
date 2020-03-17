@@ -568,6 +568,7 @@ app.on("ready", async () => {
         player.sendPlaylists(teletubeData.getPlaylists());
         player.loadStatus(teletubeData.getStatus());
         logger.info(`playlist loaded`, tag.MAIN);
+        player.deviceSendStatus();
     });
 
     const client = new ChromecastAPI();

@@ -317,7 +317,7 @@ class Playlist extends React.Component {
                                         )
                                     }
                                     style={{
-                                        marginRight: 20,
+                                        marginRight: 8,
                                         border: "none"
                                     }}
                                     onClick={this.onShuffleRequest.bind(this)}

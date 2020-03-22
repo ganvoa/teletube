@@ -472,7 +472,7 @@ class Player extends React.Component {
                                 disabled={this.state.currentSong ? false : true}
                                 type="primary"
                                 onClick={this.onTogglePlay.bind(this)}
-                                icon={this.state.isPlaying ? <PauseOutlined /> : <CaretRightOutlined />}
+                                icon={this.state.isPlaying ? <PauseOutlined style={{ fontSize: '32px' }} /> : <CaretRightOutlined style={{ fontSize: '32px' }} />}
                                 shape="circle"
                             />
                         </Col>
@@ -502,6 +502,7 @@ class Player extends React.Component {
                                     className="slider"
                                     disabled={this.state.device != null}
                                     min={0}
+                                    tooltipVisible={false}
                                     max={100}
                                     value={this.state.currentVolume * 100}
                                     onChange={this.onChangeVolume.bind(this)}

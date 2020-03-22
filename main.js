@@ -715,12 +715,16 @@ app.on("ready", async () => {
         config = teletubeData.saveConfig(config).getConfig();
         logger.info(`testing bot token`, tag.TELEGRAM);
         try {
-            await bot.changeToken(config.telegramBotToken);
-            logger.info(`getting updates`, tag.TELEGRAM);
-            let updates = await bot.flush();
-            logger.info(`got ${updates.length} updates`, tag.TELEGRAM);
-            logger.info(`starting polling`, tag.TELEGRAM);
-            await bot.start();
+            if (bot == null) {
+                await startBot(config.telegramBotToken);
+            } else {
+                await bot.changeToken(config.telegramBotToken);
+                logger.info(`getting updates`, tag.TELEGRAM);
+                let updates = await bot.flush();
+                logger.info(`got ${updates.length} updates`, tag.TELEGRAM);
+                logger.info(`starting polling`, tag.TELEGRAM);
+                await bot.start();
+            }
             logger.info(`polling started`, tag.TELEGRAM);
             config.telegramBotTokenValid = true;
         } catch (error) {

@@ -1,5 +1,5 @@
 .hidden {
-    display: none;
+    display: none !important;
 }
 
 .tt-current-playlist-song {
@@ -50,6 +50,13 @@
     background-size: 200%;
     background-position: center center;
     filter: brightness(0.3) blur(10px);
+}
+
+.align-middle-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
 }
 
 #bars {

@@ -167,7 +167,6 @@ class App extends React.Component {
         let search = this.state.currentSong.uid;
         let index = 0;
         this.state.currentPlaylist.tracks.forEach((element, key) => {
-            // console.log(`#${key} - ${element.uid} - ${element.title}`);
             if (element.uid === search) {
                 index = key;
             }

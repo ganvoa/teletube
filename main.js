@@ -1,6 +1,6 @@
 const ChromecastAPI = require("chromecast-api");
 const { logger, tag } = require("./lib/logger");
-const { getAudioUrl } = require("./lib/Ytb");
+const { getAudioUrl, checkSong } = require("./lib/Ytb");
 const { app, ipcMain } = require("electron");
 const { Player } = require("./lib/Player");
 const { Bot } = require("./lib/Bot");
@@ -505,7 +505,7 @@ const refreshSong = async (playlistId, song, notify, play) => {
         if (player && notify) {
             player.loadStatus(teletubeData.getStatus());
         }
-        if (player && play) player.remotePlay(updatedSong);
+        if (player && play) player.songCheckedToPlay(updatedSong);
     } catch (error) {
         logger.error(makeError(error), tag.YOUTUBE);
         if (player && notify) {
@@ -577,6 +577,19 @@ app.on("ready", async () => {
         devices.push(device);
         logger.info(`found new device: ${device.friendlyName}`, tag.CAST);
         player.notifyDevice(devices);
+    });
+
+    ipcMain.on(`check-song`, async (e, playlistId, songToCheck) => {
+        let song = songToCheck;
+        logger.info(`check song ${song.title} to play`, tag.MAIN);
+        try {
+            await checkSong(song);
+            logger.info(`song ${song.title} is valid`, tag.MAIN);
+            player.songCheckedToPlay(song)
+        } catch (error) {
+            logger.warn(`invalid song, trying to get new link: ${error.message}`, tag.MAIN);
+            await refreshSong(playlistId, song, true, true)
+        }
     });
 
     ipcMain.on(`device-play`, (e, song) => {
@@ -691,8 +704,10 @@ app.on("ready", async () => {
 
     ipcMain.on(`save-status`, (e, status) => {
         teletubeData.saveStatus(status);
-        if (status.currentSong)
-            player.notify(`Now Playing ${status.currentSong.title}`);
+    });
+
+    ipcMain.on(`notify-now-playing`, (e, song) => {
+        player.notify(`Now Playing ${song.title}`);
     });
 
     ipcMain.on(`load-config`, (e, {}) => {

@@ -312,9 +312,9 @@ class Playlist extends React.Component {
                         <List
                             style={{
                                 overflowY: 'auto',
-                                height: 'calc(100vh - 129px)',
-                                maxHeight: 'calc(100vh - 129px)',
-                                minHeight: 'calc(100vh - 129px)'
+                                height: 'calc(100vh - 128px)',
+                                maxHeight: 'calc(100vh - 128px)',
+                                minHeight: 'calc(100vh - 128px)'
                             }}
                             bordered
                         >

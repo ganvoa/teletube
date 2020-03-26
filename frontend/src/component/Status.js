@@ -3,10 +3,12 @@ import { PageHeader, Tag, Drawer, Button } from "antd";
 import {
     SoundOutlined,
     LoadingOutlined,
-    SettingOutlined
+    SettingOutlined,
+    YoutubeOutlined
 } from "@ant-design/icons";
 import Cast from '../assets/svg/cast';
 import Config from "./Config";
+import YoutubeSearch from "./YoutubeSearch";
 
 class Status extends React.Component {
     constructor(props) {
@@ -55,6 +57,12 @@ class Status extends React.Component {
         });
     }
 
+    onCloseYoutubeSearch() {
+        this.setState({
+            youtubeSearchVisible: false
+        });
+    }
+
     onConfigUpdate(config) {
         this.setState({
             currentConfig: config
@@ -68,6 +76,10 @@ class Status extends React.Component {
                     visible={this.state.configVisible}
                     onConfigUpdate={this.onConfigUpdate.bind(this)}
                     onCloseConfig={this.onCloseConfig.bind(this)}
+                />
+                <YoutubeSearch
+                    visible={this.state.youtubeSearchVisible}
+                    onCloseYoutubeSearch={this.onCloseYoutubeSearch.bind(this)}
                 />
                 <Drawer
                     title="Select Device"
@@ -120,6 +132,15 @@ class Status extends React.Component {
                     }}
                     tags={this.state.currentConfig != null && this.state.currentConfig.telegramBotTokenValid ? <Tag color="green">Bot Running</Tag> : <Tag color="red">Bot Stopped</Tag>}
                     extra={[
+                        <Button
+                            key={2}
+                            className="tt-btn"
+                            shape="circle"
+                            icon={<YoutubeOutlined />}
+                            onClick={() => {
+                                this.setState({ youtubeSearchVisible: true });
+                            }}
+                        />,
                         <Button
                             key={1}
                             className="tt-btn"

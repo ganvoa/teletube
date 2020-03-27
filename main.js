@@ -11,7 +11,9 @@ const teletubeData = new DataStore({ name: "teletube" });
 const { YoutubeV3 } = require("./lib/YoutubeV3");
 
 app.allowRendererProcessReuse = true;
-
+/**
+ * @type {YoutubeV3}
+ */
 let youtube = null;
 let bot = null;
 /**
@@ -577,6 +579,19 @@ app.on("ready", async () => {
         devices.push(device);
         logger.info(`found new device: ${device.friendlyName}`, tag.CAST);
         player.notifyDevice(devices);
+    });
+
+    ipcMain.on(`ui-search-youtube`, async (e, query) => {
+        logger.info(`ui-search-youtube ${query}`, tag.UI);
+        try {
+            logger.info(`searching for ${query}`, tag.YOUTUBE);
+            let results = await youtube.search(query);
+            logger.info(`got ${results.length} results`, tag.YOUTUBE);
+            player.uiYoutubeSearchResult(results);
+        } catch (error) {
+            logger.error(`Error: ${error.message}`);
+            player.uiYoutubeSearchError(error.message);
+        }
     });
 
     ipcMain.on(`check-song`, async (e, playlistId, songToCheck) => {

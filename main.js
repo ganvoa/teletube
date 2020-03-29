@@ -1,26 +1,24 @@
 const ChromecastAPI = require("chromecast-api");
 const { logger, tag } = require("./lib/logger");
-const { getAudioUrl, checkSong } = require("./lib/Ytb");
+const { getAudioUrl } = require("./lib/Ytb");
+const Youtube = require("./lib/Youtube");
 const { app, ipcMain } = require("electron");
 const { Player } = require("./lib/Player");
 const { Bot } = require("./lib/Bot");
 const { makeError } = require("./lib/utils");
-const clientCredentials = require("./client_secret.json");
 const DataStore = require("./lib/datastore");
 const teletubeData = new DataStore({ name: "teletube" });
-const { YoutubeV3 } = require("./lib/YoutubeV3");
 
 app.allowRendererProcessReuse = true;
+
 /**
- * @type {YoutubeV3}
+ * @type {Bot}
  */
-let youtube = null;
 let bot = null;
 /**
  * @type {Player}
  */
 let player = null;
-let INTERVAL_CHECKEXPIRED_ID = null;
 let INTERVAL_CHROMECAST_ID = null;
 
 const getDevice = (name, devices) => {
@@ -49,9 +47,7 @@ const startBot = async telegramBotToken => {
                 player.remoteResume();
                 bot.notify(chatId, `:)`);
             } else {
-                let playlist = teletubeData.getPlaylist(
-                    teletubeData.getStatus().currentPlaylist.uid
-                );
+                let playlist = teletubeData.getPlaylist(teletubeData.getStatus().currentPlaylist.uid);
                 if (playlist.tracks.length > 0) {
                     song = playlist.tracks[0];
                     player.remotePlay(song);
@@ -60,10 +56,7 @@ const startBot = async telegramBotToken => {
                 }
                 bot.notify(chatId, `:)`);
             }
-            bot.notify(
-                chatId,
-                `Se está reproduciendo la canción: ${song.title}`
-            );
+            bot.notify(chatId, `Se está reproduciendo la canción: ${song.title}`);
         } catch (error) {
             bot.notify(chatId, `${error}`);
             logger.error(makeError(error), tag.TELEGRAM);
@@ -80,19 +73,16 @@ const startBot = async telegramBotToken => {
         try {
             bot.notify(chatId, `Buscando la canción: ${query}`);
             logger.info(`searching for ${query}`, tag.YOUTUBE);
-            let song = await youtube.getSong(query);
-            logger.info(`got song ${song.uid} - ${song.title}`, tag.YOUTUBE);
+            let song = await Youtube.getSong(query);
+            logger.info(`got song ${song.id} - ${song.title}`, tag.YOUTUBE);
             song = await getAudioUrl(song);
-            logger.info(`got audio url for song ${song.uid}`, tag.YOUTUBE);
+            logger.info(`got audio url for song ${song.id}`, tag.YOUTUBE);
             let playlistId = teletubeData.getStatus().currentPlaylist.uid;
             logger.info(`updating playlist ${playlistId}`, tag.MAIN);
             teletubeData.putSongNext(playlistId, song);
             player.loadStatus(teletubeData.getStatus());
             player.remotePlay(song);
-            bot.notify(
-                chatId,
-                `Se está reproduciendo la canción: ${song.title}`
-            );
+            bot.notify(chatId, `Se está reproduciendo la canción: ${song.title}`);
         } catch (error) {
             bot.notify(chatId, `Error: ${error.message}`);
             logger.error(makeError(error), tag.TELEGRAM);
@@ -109,10 +99,10 @@ const startBot = async telegramBotToken => {
         try {
             bot.notify(chatId, `Buscando la canción: ${query}`);
             logger.info(`searching for ${query}`, tag.YOUTUBE);
-            let song = await youtube.getSong(query);
-            logger.info(`got song ${song.uid} - ${song.title}`, tag.YOUTUBE);
+            let song = await Youtube.getSong(query);
+            logger.info(`got song ${song.id} - ${song.title}`, tag.YOUTUBE);
             song = await getAudioUrl(song);
-            logger.info(`got audio url for song ${song.uid}`, tag.YOUTUBE);
+            logger.info(`got audio url for song ${song.id}`, tag.YOUTUBE);
             bot.notify(chatId, `Se agregó la canción: ${song.title}`);
             let playlistId = teletubeData.getStatus().currentPlaylist.uid;
             teletubeData.addSong(playlistId, song);
@@ -133,10 +123,10 @@ const startBot = async telegramBotToken => {
         try {
             bot.notify(chatId, `Buscando la canción: ${query}`);
             logger.info(`searching for ${query}`, tag.YOUTUBE);
-            let song = await youtube.getSong(query);
-            logger.info(`got song ${song.uid} - ${song.title}`, tag.YOUTUBE);
+            let song = await Youtube.getSong(query);
+            logger.info(`got song ${song.id} - ${song.title}`, tag.YOUTUBE);
             song = await getAudioUrl(song);
-            logger.info(`got audio url for song ${song.uid}`, tag.YOUTUBE);
+            logger.info(`got audio url for song ${song.id}`, tag.YOUTUBE);
             bot.notify(chatId, `Se agregó la canción: ${song.title}`);
             let playlistId = teletubeData.getStatus().currentPlaylist.uid;
             teletubeData.putSongNext(playlistId, song);
@@ -270,11 +260,7 @@ const startBot = async telegramBotToken => {
             };
 
             let songs = [];
-            for (
-                let index = 1;
-                index <= Math.min(5, playlist.tracks.length);
-                index++
-            ) {
+            for (let index = 1; index <= Math.min(5, playlist.tracks.length); index++) {
                 songs.push({
                     text: "▶️ " + index,
                     callback_data: "/song " + index
@@ -292,9 +278,9 @@ const startBot = async telegramBotToken => {
             };
             let msg = `🎵 <b>Playlist</b> <i>${playlist.tracks.length} Songs</i> Page 1\n\n`;
             playlist.tracks.slice(0, 5).forEach((song, key) => {
-                msg += `#${key + 1} - ${song.title}\n<a href="${
-                    song.url
-                }">Youtube</a> | <a href="${song.audioUrl}">Audio</a>\n\n`;
+                msg += `#${key + 1} - ${song.title}\n<a href="${song.url}">Youtube</a> | <a href="${
+                    song.audioUrl
+                }">Audio</a>\n\n`;
             });
             bot.notify(chatId, msg, options);
         } catch (error) {
@@ -325,10 +311,7 @@ const startBot = async telegramBotToken => {
                 bot.notify(chatId, `Error: songIndex ${songIndex} invalid`);
             else {
                 let song = playlist.tracks[songIndex - 1];
-                bot.notify(
-                    chatId,
-                    `Se está reproduciendo la canción: ${song.title}`
-                );
+                bot.notify(chatId, `Se está reproduciendo la canción: ${song.title}`);
                 player.remotePlay(song);
             }
         } catch (error) {
@@ -396,9 +379,9 @@ const startBot = async telegramBotToken => {
             };
             let msg = `🎵 <b>Playlist</b> <i>${playlist.tracks.length} Songs</i> Page ${page}\n\n`;
             playlist.tracks.slice(pageInf, pageSup).forEach((song, key) => {
-                msg += `#${key + pageInf + 1} - ${song.title}\n<a href="${
-                    song.url
-                }">Youtube</a> | <a href="${song.audioUrl}">Audio</a>\n\n`;
+                msg += `#${key + pageInf + 1} - ${song.title}\n<a href="${song.url}">Youtube</a> | <a href="${
+                    song.audioUrl
+                }">Audio</a>\n\n`;
             });
             bot.editMessageText(msg, options);
         } catch (error) {
@@ -433,12 +416,7 @@ const startBot = async telegramBotToken => {
                     ]
                 }
             };
-            let msg =
-                "🎵 Current Song\n<b>" +
-                song.title +
-                "</b>\n<i>Playlist: " +
-                playlist.name +
-                "</i>";
+            let msg = "🎵 Current Song\n<b>" + song.title + "</b>\n<i>Playlist: " + playlist.name + "</i>";
             bot.notify(chatId, msg, options);
         } catch (error) {
             bot.notify(chatId, `Error: ${error}`);
@@ -469,10 +447,7 @@ const startBot = async telegramBotToken => {
     });
 
     bot.onMessage((chatId, message) => {
-        logger.info(
-            `received message ${message} on chat ${chatId}`,
-            tag.TELEGRAM
-        );
+        logger.info(`received message ${message} on chat ${chatId}`, tag.TELEGRAM);
     });
 
     bot.onError(error => {
@@ -498,11 +473,11 @@ const startBot = async telegramBotToken => {
 };
 
 const refreshSong = async (playlistId, song, notify, play) => {
-    logger.info(`refreshing song ${song.uid} - ${song.title}`, tag.YOUTUBE);
-    player.updateLoading(`Fixing song ${song.uid} - ${song.title}`);
+    logger.info(`refreshing song ${song.id} - ${song.title}`, tag.YOUTUBE);
+    player.updateLoading(`Fixing song ${song.id} - ${song.title}`);
     try {
         let updatedSong = await getAudioUrl(song);
-        logger.info(`got audio url for ${song.uid}`, tag.YOUTUBE);
+        logger.info(`got audio url for ${song.id}`, tag.YOUTUBE);
         teletubeData.updateSong(playlistId, updatedSong);
         if (player && notify) {
             player.loadStatus(teletubeData.getStatus());
@@ -525,22 +500,7 @@ app.on("ready", async () => {
     player = new Player(async () => {
         logger.info(`player window shown`, tag.MAIN);
         logger.info(`preparing window content`, tag.MAIN);
-
         player.loading(true);
-        player.updateLoading("Waiting Youtube authentication...");
-        try {
-            youtube = new YoutubeV3(clientCredentials);
-            youtube.createOauthClient();
-            let channel = await youtube.authenticate();
-            logger.info(
-                `Authentication succeed channel: ${channel.title}`,
-                tag.YOUTUBE
-            );
-            player.setYoutubeChannel(channel);
-        } catch (error) {
-            logger.error(makeError(error), tag.YOUTUBE);
-        }
-
         player.updateLoading("Starting Bot...");
         let loadBot = true;
         if (bot) {
@@ -560,10 +520,8 @@ app.on("ready", async () => {
         }
 
         config = teletubeData.saveConfig(config).getConfig();
-
         player.loading(false);
         logger.info(`window content ready`, tag.MAIN);
-
         logger.info(`loading playlist`, tag.MAIN);
         player.notifyDevice(devices);
         player.notifyDeviceSelected();
@@ -585,7 +543,7 @@ app.on("ready", async () => {
         logger.info(`ui-search-youtube ${query}`, tag.UI);
         try {
             logger.info(`searching for ${query}`, tag.YOUTUBE);
-            let results = await youtube.search(query);
+            let results = await Youtube.search(query);
             logger.info(`got ${results.length} results`, tag.YOUTUBE);
             player.uiYoutubeSearchResult(results);
         } catch (error) {
@@ -594,16 +552,36 @@ app.on("ready", async () => {
         }
     });
 
+    ipcMain.on(`ui-add-song`, async (e, song) => {
+        logger.info(`ui-add-song ${song.id}`, tag.UI);
+        if (teletubeData.getStatus().currentPlaylist === null) {
+            logger.warn(`no playlist selected`, tag.UI);
+            player.uiAddSongError(song, `No playlist selected`);
+            return;
+        }
+        try {
+            song = await getAudioUrl(song);
+            logger.info(`got audio url for song ${song.id}`, tag.YOUTUBE);
+            let playlistId = teletubeData.getStatus().currentPlaylist.uid;
+            teletubeData.addSong(playlistId, song);
+            player.loadStatus(teletubeData.getStatus());
+            player.uiAddSongSuccess(song);
+        } catch (error) {
+            player.uiAddSongError(song, error.message);
+            logger.error(makeError(error), tag.TELEGRAM);
+        }
+    });
+
     ipcMain.on(`check-song`, async (e, playlistId, songToCheck) => {
         let song = songToCheck;
         logger.info(`check song ${song.title} to play`, tag.MAIN);
         try {
-            await checkSong(song);
+            await Youtube.checkUrl(song.audioUrl);
             logger.info(`song ${song.title} is valid`, tag.MAIN);
-            player.songCheckedToPlay(song)
+            player.songCheckedToPlay(song);
         } catch (error) {
             logger.warn(`invalid song, trying to get new link: ${error.message}`, tag.MAIN);
-            await refreshSong(playlistId, song, true, true)
+            await refreshSong(playlistId, song, true, true);
         }
     });
 
@@ -617,10 +595,7 @@ app.on("ready", async () => {
     });
 
     ipcMain.on(`refresh-song`, (e, playlistId, song) => {
-        logger.info(
-            `Refresh song requested for Song: ${song.title}  Playlist ${playlistId}`,
-            tag.MAIN
-        );
+        logger.info(`Refresh song requested for Song: ${song.title}  Playlist ${playlistId}`, tag.MAIN);
         refreshSong(playlistId, song, true, true);
     });
 
@@ -766,13 +741,10 @@ app.on("ready", async () => {
     });
 
     ipcMain.on(`delete-song`, (e, playlistId, song) => {
-        logger.info(
-            `delete song ${song.title} from playlist ${playlistId}`,
-            tag.MAIN
-        );
+        logger.info(`delete song ${song.title} from playlist ${playlistId}`, tag.MAIN);
 
         teletubeData.deleteSong(playlistId, song);
-        player.loadStatus(teletubeData.getStatus())
+        player.loadStatus(teletubeData.getStatus());
     });
 });
 
@@ -795,9 +767,6 @@ app.on("window-all-closed", async () => {
     }
 
     await stopBot();
-
-    logger.info("stopping service", tag.YOUTUBE);
-    if (INTERVAL_CHECKEXPIRED_ID) clearInterval(INTERVAL_CHECKEXPIRED_ID);
 
     logger.info("stopping service", tag.CAST);
     if (INTERVAL_CHROMECAST_ID) clearInterval(INTERVAL_CHROMECAST_ID);

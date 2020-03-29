@@ -605,7 +605,7 @@ app.on("ready", async () => {
 
     ipcMain.on(`device-stop`, e => {
         logger.info(`stop song on device`, tag.MAIN);
-        player.deviceStp();
+        player.deviceStop();
     });
 
     ipcMain.on(`device-seek`, (e, time) => {

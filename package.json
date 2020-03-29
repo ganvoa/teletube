@@ -4,9 +4,7 @@
   "description": "",
   "main": "main.js",
   "scripts": {
-    "start": "electron .",
-    "test-youtube": "electron tests/youtube.js",
-    "test-telegram": "node tests/telegram.js"
+    "start": "electron ."
   },
   "author": "gamb0a",
   "license": "ISC",

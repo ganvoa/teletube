@@ -103,10 +103,10 @@ const startBot = async telegramBotToken => {
             logger.info(`got song ${song.id} - ${song.title}`, tag.YOUTUBE);
             song = await getAudioUrl(song);
             logger.info(`got audio url for song ${song.id}`, tag.YOUTUBE);
-            bot.notify(chatId, `Se agregó la canción: ${song.title}`);
             let playlistId = teletubeData.getStatus().currentPlaylist.uid;
             teletubeData.addSong(playlistId, song, from);
             player.loadStatus(teletubeData.getStatus());
+            bot.notify(chatId, `Se agregó la canción: ${song.title}`);
         } catch (error) {
             bot.notify(chatId, `Error: ${error.message}`);
             logger.error(makeError(error), tag.TELEGRAM);
@@ -127,10 +127,10 @@ const startBot = async telegramBotToken => {
             logger.info(`got song ${song.id} - ${song.title}`, tag.YOUTUBE);
             song = await getAudioUrl(song);
             logger.info(`got audio url for song ${song.id}`, tag.YOUTUBE);
-            bot.notify(chatId, `Se agregó la canción: ${song.title}`);
             let playlistId = teletubeData.getStatus().currentPlaylist.uid;
             teletubeData.putSongNext(playlistId, song, from);
             player.loadStatus(teletubeData.getStatus());
+            bot.notify(chatId, `Se agregó la canción: ${song.title}`);
         } catch (error) {
             bot.notify(chatId, `Error: ${error.message}`);
             logger.error(makeError(error), tag.TELEGRAM);

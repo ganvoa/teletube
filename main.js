@@ -63,7 +63,7 @@ const startBot = async telegramBotToken => {
         }
     });
 
-    bot.onPlaySong(async (chatId, query) => {
+    bot.onPlaySong(async (chatId, query, from) => {
         logger.info(`received command /play ${query}`, tag.TELEGRAM);
         if (teletubeData.getStatus().currentPlaylist === null) {
             logger.warn(`no playlist selected`, tag.TELEGRAM);
@@ -79,7 +79,7 @@ const startBot = async telegramBotToken => {
             logger.info(`got audio url for song ${song.id}`, tag.YOUTUBE);
             let playlistId = teletubeData.getStatus().currentPlaylist.uid;
             logger.info(`updating playlist ${playlistId}`, tag.MAIN);
-            teletubeData.putSongNext(playlistId, song);
+            teletubeData.putSongNext(playlistId, song, from);
             player.loadStatus(teletubeData.getStatus());
             player.remotePlay(song);
             bot.notify(chatId, `Se está reproduciendo la canción: ${song.title}`);
@@ -89,7 +89,7 @@ const startBot = async telegramBotToken => {
         }
     });
 
-    bot.onAddSong(async (chatId, query) => {
+    bot.onAddSong(async (chatId, query, from) => {
         logger.info(`received command /add ${query}`, tag.TELEGRAM);
         if (teletubeData.getStatus().currentPlaylist === null) {
             logger.warn(`no playlist selected`, tag.TELEGRAM);
@@ -105,7 +105,7 @@ const startBot = async telegramBotToken => {
             logger.info(`got audio url for song ${song.id}`, tag.YOUTUBE);
             bot.notify(chatId, `Se agregó la canción: ${song.title}`);
             let playlistId = teletubeData.getStatus().currentPlaylist.uid;
-            teletubeData.addSong(playlistId, song);
+            teletubeData.addSong(playlistId, song, from);
             player.loadStatus(teletubeData.getStatus());
         } catch (error) {
             bot.notify(chatId, `Error: ${error.message}`);
@@ -113,7 +113,7 @@ const startBot = async telegramBotToken => {
         }
     });
 
-    bot.onAddNextSong(async (chatId, query) => {
+    bot.onAddNextSong(async (chatId, query, from) => {
         logger.info(`received command /next ${query}`, tag.TELEGRAM);
         if (teletubeData.getStatus().currentPlaylist === null) {
             logger.warn(`no playlist selected`, tag.TELEGRAM);
@@ -129,7 +129,7 @@ const startBot = async telegramBotToken => {
             logger.info(`got audio url for song ${song.id}`, tag.YOUTUBE);
             bot.notify(chatId, `Se agregó la canción: ${song.title}`);
             let playlistId = teletubeData.getStatus().currentPlaylist.uid;
-            teletubeData.putSongNext(playlistId, song);
+            teletubeData.putSongNext(playlistId, song, from);
             player.loadStatus(teletubeData.getStatus());
         } catch (error) {
             bot.notify(chatId, `Error: ${error.message}`);
@@ -560,15 +560,15 @@ app.on("ready", async () => {
             return;
         }
         try {
-            song = await getAudioUrl(song);
-            logger.info(`got audio url for song ${song.id}`, tag.YOUTUBE);
+            let songWithAudio = await getAudioUrl(song);
+            logger.info(`got audio url for song ${songWithAudio.id}`, tag.YOUTUBE);
             let playlistId = teletubeData.getStatus().currentPlaylist.uid;
-            teletubeData.addSong(playlistId, song);
+            teletubeData.addSong(playlistId, songWithAudio, 'host');
             player.loadStatus(teletubeData.getStatus());
-            player.uiAddSongSuccess(song);
+            player.uiAddSongSuccess(songWithAudio);
         } catch (error) {
             player.uiAddSongError(song, error.message);
-            logger.error(makeError(error), tag.TELEGRAM);
+            logger.error(makeError(error), tag.UI);
         }
     });
 
@@ -641,17 +641,9 @@ app.on("ready", async () => {
             logger.info(`stopping player`, tag.MAIN);
             player.stop();
             logger.info(`playlist created`, tag.MAIN);
-            let playlistId = teletubeData.addPlaylist(playlistName);
+            teletubeData.addPlaylist(playlistName);
             player.createPlaylistResponse(isSuccess, msg);
-            let playlist = teletubeData.getPlaylist(playlistId);
-            let status = teletubeData.getStatus();
-            status.currentPlaylist = playlist;
-            status.currentSong = null;
-            status.nextSong = null;
-            status.prevSong = null;
-            teletubeData.saveStatus(status);
             player.sendPlaylists(teletubeData.getPlaylists());
-            player.loadStatus(status);
         }
     });
 

@@ -571,6 +571,27 @@ app.on("ready", async () => {
         }
     });
 
+    ipcMain.on(`ui-add-play-song`, async (e, song) => {
+        logger.info(`ui-add-play-song ${song.id}`, tag.UI);
+        if (teletubeData.getStatus().currentPlaylist === null) {
+            logger.warn(`no playlist selected`, tag.UI);
+            player.uiAddSongError(song, `No playlist selected`);
+            return;
+        }
+        try {
+            let songWithAudio = await Youtube.updateSongWithAudio(song);
+            logger.info(`got audio url for song ${songWithAudio.id}`, tag.YOUTUBE);
+            let playlistId = teletubeData.getStatus().currentPlaylist.uid;
+            teletubeData.addSong(playlistId, songWithAudio, "host");
+            player.loadStatus(teletubeData.getStatus());
+            player.remotePlay(song);
+            player.uiAddPlaySongSuccess(songWithAudio);
+        } catch (error) {
+            player.uiAddPlaySongError(song, error.message);
+            logger.error(makeError(error), tag.UI);
+        }
+    });
+
     ipcMain.on(`check-song`, async (e, playlistId, songToCheck) => {
         let song = songToCheck;
         logger.info(`check song ${song.title} to play`, tag.MAIN);

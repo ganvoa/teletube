@@ -18,6 +18,7 @@ let bot = null;
  * @type {Player}
  */
 let player = null;
+let decipher = null;
 let INTERVAL_CHROMECAST_ID = null;
 
 const getDevice = (name, devices) => {
@@ -74,7 +75,7 @@ const startBot = async telegramBotToken => {
             logger.info(`searching for ${query}`, tag.YOUTUBE);
             let song = await Youtube.getSong(query);
             logger.info(`got song ${song.id} - ${song.title}`, tag.YOUTUBE);
-            song = await Youtube.updateSongWithAudio(song);
+            song = await Youtube.updateSongWithAudio(song, decipher);
             logger.info(`got audio url for song ${song.id}`, tag.YOUTUBE);
             let playlistId = teletubeData.getStatus().currentPlaylist.uid;
             logger.info(`updating playlist ${playlistId}`, tag.MAIN);
@@ -100,7 +101,7 @@ const startBot = async telegramBotToken => {
             logger.info(`searching for ${query}`, tag.YOUTUBE);
             let song = await Youtube.getSong(query);
             logger.info(`got song ${song.id} - ${song.title}`, tag.YOUTUBE);
-            song = await Youtube.updateSongWithAudio(song);
+            song = await Youtube.updateSongWithAudio(song, decipher);
             logger.info(`got audio url for song ${song.id}`, tag.YOUTUBE);
             let playlistId = teletubeData.getStatus().currentPlaylist.uid;
             teletubeData.addSong(playlistId, song, from);
@@ -124,7 +125,7 @@ const startBot = async telegramBotToken => {
             logger.info(`searching for ${query}`, tag.YOUTUBE);
             let song = await Youtube.getSong(query);
             logger.info(`got song ${song.id} - ${song.title}`, tag.YOUTUBE);
-            song = await Youtube.updateSongWithAudio(song);
+            song = await Youtube.updateSongWithAudio(song, decipher);
             logger.info(`got audio url for song ${song.id}`, tag.YOUTUBE);
             let playlistId = teletubeData.getStatus().currentPlaylist.uid;
             teletubeData.putSongNext(playlistId, song, from);
@@ -475,7 +476,7 @@ const refreshSong = async (playlistId, song, notify, play) => {
     logger.info(`refreshing song ${song.id} - ${song.title}`, tag.YOUTUBE);
     player.updateLoading(`Fixing song ${song.id} - ${song.title}`);
     try {
-        let updatedSong = await Youtube.updateSongWithAudio(song);
+        let updatedSong = await Youtube.updateSongWithAudio(song, decipher);
         logger.info(`got audio url for ${song.id}`, tag.YOUTUBE);
         teletubeData.updateSong(playlistId, updatedSong);
         if (player && notify) {
@@ -500,6 +501,8 @@ app.on("ready", async () => {
         logger.info(`player window shown`, tag.MAIN);
         logger.info(`preparing window content`, tag.MAIN);
         player.loading(true);
+        player.updateLoading("Preparing Youtube...");
+        decipher =  await Youtube.getDecFn();
         player.updateLoading("Starting Bot...");
         let loadBot = true;
         if (bot) {
@@ -559,7 +562,7 @@ app.on("ready", async () => {
             return;
         }
         try {
-            let songWithAudio = await Youtube.updateSongWithAudio(song);
+            let songWithAudio = await Youtube.updateSongWithAudio(song, decipher);
             logger.info(`got audio url for song ${songWithAudio.id}`, tag.YOUTUBE);
             let playlistId = teletubeData.getStatus().currentPlaylist.uid;
             teletubeData.addSong(playlistId, songWithAudio, "host");
@@ -579,7 +582,7 @@ app.on("ready", async () => {
             return;
         }
         try {
-            let songWithAudio = await Youtube.updateSongWithAudio(song);
+            let songWithAudio = await Youtube.updateSongWithAudio(song, decipher);
             logger.info(`got audio url for song ${songWithAudio.id}`, tag.YOUTUBE);
             let playlistId = teletubeData.getStatus().currentPlaylist.uid;
             teletubeData.addSong(playlistId, songWithAudio, "host");

@@ -1,0 +1,3 @@
+[submodule "castv2-client"]
+	path = castv2-client
+	url = git@github.com:gamb0a/node-castv2-client.git

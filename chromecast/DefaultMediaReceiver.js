@@ -1,12 +1,18 @@
-var { Application, MediaController } = require('castv2-client');
+var { Application, MediaController } = require('../castv2-client');
 
 class DefaultMediaReceiver extends Application {
     constructor(client, session) {
         super(client, session);
         this.media = this.createController(MediaController);
         this.media.on('status', this.onStatus.bind(this));
+        this.once('close', this.onClose.bind(this));
     }
-
+    
+    onClose() {
+        this.media = null;
+        this.emit('disconnected');
+    }
+    
     onStatus(status) {
         this.emit('status', status);
     }
@@ -21,11 +27,11 @@ class DefaultMediaReceiver extends Application {
 
     play(callback) {
         this.media.play(callback);
-    };
+    }
 
     pause(callback) {
         this.media.pause(callback);
-    };
+    }
 
     stop(callback) {
         this.media.stop(callback);

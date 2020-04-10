@@ -1,4 +1,4 @@
-const { Client } = require('castv2-client');
+const { Client } = require('../castv2-client');
 const EventEmitter = require('events');
 const { StyledMediaReceiver } = require('./StyledMediaReceiver');
 
@@ -18,16 +18,35 @@ class Device extends EventEmitter {
         return {
             name: this.name,
             friendlyName: this.friendlyName,
-            host: this.host
+            host: this.host,
         };
+    }
+
+    async connectAndLaunch() {
+        await this.connect();
+        if (this.player == null) {
+            this.player = await this.launch(StyledMediaReceiver);
+            let self = this;
+            function onstatus(status) {
+                self.emit('status', status);
+                if (status.playerState === 'IDLE' && status.idleReason === 'FINISHED') {
+                    self.emit('finished');
+                }
+            }
+
+            this.player.on('status', onstatus);
+            this.player.once('disconnected', () => {
+                this.player.removeListener('status', onstatus);
+                this.emit('disconnected');
+            });
+        }
     }
 
     connect() {
         return new Promise((resolve, reject) => {
             if (this.client === null) {
                 this.client = new Client();
-                console.log('client on error');
-                this.client.on('error', error => {
+                this.client.once('error', (error) => {
                     this.client.close();
                     this.client = null;
                     reject(error);
@@ -53,7 +72,7 @@ class Device extends EventEmitter {
                     return;
                 }
 
-                const filtered = sessions.filter(session => {
+                const filtered = sessions.filter((session) => {
                     return session.appId === app.APP_ID;
                 });
                 const session = filtered.shift();
@@ -81,20 +100,6 @@ class Device extends EventEmitter {
         });
     }
 
-    async playMedia(media, metadata, opts) {
-        if (this.player == null) {
-            this.player = await this.launch(StyledMediaReceiver);
-            console.log('client on status');
-            this.player.on('status', status => {
-                this.emit('status', status);
-                if (status.playerState === 'IDLE' && status.idleReason === 'FINISHED') {
-                    this.emit('finished');
-                }
-            });
-        }
-        return await this.playAudio(media, metadata, opts);
-    }
-
     /**
      * @param {Object} audioMedia
      * @param {string} audioMedia.url - Audio resource URL
@@ -102,20 +107,16 @@ class Device extends EventEmitter {
      * @param {Object} metadata - Audio Metada
      * @param {string} metadata.title - Audio title
      * @param {string} metadata.img - URL of the audio image
-     * @param {Object} options - Player Options
-     * @param {boolean} options.autoplay - Should autoplay. Default = true
-     * @param {number} options.currentTime - Starting point in seconds. Default = 0
+     * @param {Object} opt - Player Options
+     * @param {boolean} opt.autoplay - Should autoplay. Default = true
+     * @param {number} opt.currentTime - Starting point in seconds. Default = 0
      */
-    async play(audioMedia, metadata, options) {
-        await this.connect();
-        await this.playMedia(audioMedia, metadata, options);
-    }
+    async play(audioMedia, metadata, opt = {}) {
 
-    playAudio(audioMedia, metadata, opt = {}) {
         return new Promise((resolve, reject) => {
             let media = {
                 contentId: audioMedia.url,
-                contentType: audioMedia.mimeType
+                contentType: audioMedia.mimeType,
             };
 
             media.metadata = {
@@ -130,17 +131,17 @@ class Device extends EventEmitter {
                 songName: metadata.songName || undefined,
                 images: [
                     {
-                        url: metadata.img
-                    }
-                ]
+                        url: metadata.img,
+                    },
+                ],
             };
 
             let options = {
                 autoplay: opt.autoplay || true,
-                currentTime: opt.currentTime || 0
+                currentTime: opt.currentTime || 0,
             };
 
-            this.player.load(media, options, error => {
+            this.player.load(media, options, (error) => {
                 if (error) {
                     reject(error);
                     return;
@@ -164,7 +165,7 @@ class Device extends EventEmitter {
 
     seek(seconds) {
         return new Promise((resolve, reject) => {
-            this.player.seek(seconds, err => {
+            this.player.seek(seconds, (err) => {
                 if (err) {
                     reject(err);
                     return;
@@ -176,7 +177,7 @@ class Device extends EventEmitter {
 
     pause() {
         return new Promise((resolve, reject) => {
-            this.player.pause(err => {
+            this.player.pause((err) => {
                 if (err) {
                     reject(err);
                     return;
@@ -188,7 +189,7 @@ class Device extends EventEmitter {
 
     resume() {
         return new Promise((resolve, reject) => {
-            this.player.play(err => {
+            this.player.play((err) => {
                 if (err) {
                     reject(err);
                     return;
@@ -200,7 +201,7 @@ class Device extends EventEmitter {
 
     setVolume(volume) {
         return new Promise((resolve, reject) => {
-            this.client.setVolume({ level: volume }, err => {
+            this.client.setVolume({ level: volume }, (err) => {
                 if (err) {
                     reject(err);
                     return;
@@ -212,7 +213,7 @@ class Device extends EventEmitter {
 
     stop() {
         return new Promise((resolve, reject) => {
-            this.player.stop(err => {
+            this.player.stop((err) => {
                 if (err) {
                     reject(err);
                     return;
@@ -224,7 +225,7 @@ class Device extends EventEmitter {
 
     mute() {
         return new Promise((resolve, reject) => {
-            this.client.setVolume({ muted: true }, err => {
+            this.client.setVolume({ muted: true }, (err) => {
                 if (err) {
                     reject(err);
                     return;
@@ -236,7 +237,7 @@ class Device extends EventEmitter {
 
     unmute() {
         return new Promise((resolve, reject) => {
-            this.client.setVolume({ muted: false }, err => {
+            this.client.setVolume({ muted: false }, (err) => {
                 if (err) {
                     reject(err);
                     return;
@@ -248,13 +249,14 @@ class Device extends EventEmitter {
 
     close() {
         return new Promise((resolve, reject) => {
-            this.client.stop(this.player, error => {
+            this.client.stop(this.player, (error) => {
                 if (error) {
                     reject(error);
                     return;
                 }
                 this.client.close();
                 this.client = null;
+                this.player = null;
                 resolve();
             });
         });

@@ -5,18 +5,17 @@ class DefaultMediaReceiver extends Application {
         super(client, session);
         this.media = this.createController(MediaController);
         this.media.on('status', this.onStatus.bind(this));
-        this.once('close', this.onClose.bind(this));
+        this.on('close', this.onClose.bind(this));
     }
     
     onClose() {
-        this.media = null;
         this.emit('disconnected');
     }
     
     onStatus(status) {
         this.emit('status', status);
     }
-
+    
     getStatus(callback) {
         this.media.getStatus(callback);
     }

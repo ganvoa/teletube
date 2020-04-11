@@ -18,7 +18,7 @@ class Device extends EventEmitter {
         return {
             name: this.name,
             friendlyName: this.friendlyName,
-            host: this.host,
+            host: this.host
         };
     }
 
@@ -112,11 +112,10 @@ class Device extends EventEmitter {
      * @param {number} opt.currentTime - Starting point in seconds. Default = 0
      */
     async play(audioMedia, metadata, opt = {}) {
-
         return new Promise((resolve, reject) => {
             let media = {
                 contentId: audioMedia.url,
-                contentType: audioMedia.mimeType,
+                contentType: audioMedia.mimeType
             };
 
             media.metadata = {
@@ -131,14 +130,14 @@ class Device extends EventEmitter {
                 songName: metadata.songName || undefined,
                 images: [
                     {
-                        url: metadata.img,
-                    },
-                ],
+                        url: metadata.img
+                    }
+                ]
             };
 
             let options = {
                 autoplay: opt.autoplay || true,
-                currentTime: opt.currentTime || 0,
+                currentTime: opt.currentTime || 0
             };
 
             this.player.load(media, options, (error) => {
@@ -151,7 +150,28 @@ class Device extends EventEmitter {
         });
     }
 
-    getStatus() {
+    getClientStatus() {
+        return new Promise((resolve, reject) => {
+            this.client.getStatus((err, status) => {
+                if (err) {
+                    reject(err);
+                    return;
+                }
+                resolve(status);
+            });
+            setTimeout(() => {
+                reject(new Error('timeout'));
+            }, 700);
+        });
+    }
+
+    async getStatus() {
+        let clientStatus = await this.getClientStatus();
+        let playerStatus = await this.getPlayerStatus();
+        return { clientStatus, playerStatus };
+    }
+
+    getPlayerStatus() {
         return new Promise((resolve, reject) => {
             this.player.getStatus((err, status) => {
                 if (err) {
@@ -160,6 +180,9 @@ class Device extends EventEmitter {
                 }
                 resolve(status);
             });
+            setTimeout(() => {
+                reject(new Error('timeout'));
+            }, 300);
         });
     }
 

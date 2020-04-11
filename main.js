@@ -1,4 +1,3 @@
-const ChromecastAPI = require('chromecast-api');
 const { logger, tag } = require('./lib/logger');
 const Youtube = require('./lib/Youtube');
 const { app, ipcMain } = require('electron');
@@ -10,7 +9,7 @@ const DataStore = require('./lib/datastore');
 const teletubeData = new DataStore({ name: 'teletube' });
 const finder = new DeviceFinder();
 app.allowRendererProcessReuse = true;
-process.on('warning', e => console.warn(e.stack));
+process.on('warning', (e) => console.warn(e.stack));
 /**
  * @type {Bot}
  */
@@ -257,14 +256,14 @@ const startBot = async (telegramBotToken) => {
             let showNext = playlist.tracks.length > 5;
             let options = {
                 parse_mode: 'HTML',
-                disable_web_page_preview: true,
+                disable_web_page_preview: true
             };
 
             let songs = [];
             for (let index = 1; index <= Math.min(5, playlist.tracks.length); index++) {
                 songs.push({
                     text: '▶️ ' + index,
-                    callback_data: '/song ' + index,
+                    callback_data: '/song ' + index
                 });
             }
             let pages = [];
@@ -275,7 +274,7 @@ const startBot = async (telegramBotToken) => {
             inline_keyboard.push(songs);
             inline_keyboard.push(pages);
             options.reply_markup = {
-                inline_keyboard: inline_keyboard,
+                inline_keyboard: inline_keyboard
             };
             let msg = `🎵 <b>Playlist</b> <i>${playlist.tracks.length} Songs</i> Page 1\n\n`;
             playlist.tracks.slice(0, 5).forEach((song, key) => {
@@ -349,34 +348,34 @@ const startBot = async (telegramBotToken) => {
                 parse_mode: 'HTML',
                 disable_web_page_preview: true,
                 chat_id: chatId,
-                message_id: msgId,
+                message_id: msgId
             };
 
             let songs = [];
             for (let index = pageInf + 1; index <= pageSup; index++) {
                 songs.push({
                     text: '▶️ ' + index,
-                    callback_data: '/song ' + index,
+                    callback_data: '/song ' + index
                 });
             }
             let pages = [];
             if (showPrev) {
                 pages.push({
                     text: '< Prev Page ',
-                    callback_data: '/page ' + pagePrev,
+                    callback_data: '/page ' + pagePrev
                 });
             }
             if (showNext) {
                 pages.push({
                     text: 'Next Page >',
-                    callback_data: '/page ' + pageNext,
+                    callback_data: '/page ' + pageNext
                 });
             }
             let inline_keyboard = [];
             inline_keyboard.push(songs);
             inline_keyboard.push(pages);
             options.reply_markup = {
-                inline_keyboard: inline_keyboard,
+                inline_keyboard: inline_keyboard
             };
             let msg = `🎵 <b>Playlist</b> <i>${playlist.tracks.length} Songs</i> Page ${page}\n\n`;
             playlist.tracks.slice(pageInf, pageSup).forEach((song, key) => {
@@ -412,10 +411,10 @@ const startBot = async (telegramBotToken) => {
                     inline_keyboard: [
                         [
                             { text: 'Youtube', url: song.url },
-                            { text: 'Audio', url: song.audioUrl },
-                        ],
-                    ],
-                },
+                            { text: 'Audio', url: song.audioUrl }
+                        ]
+                    ]
+                }
             };
             let msg = '🎵 Current Song\n<b>' + song.title + '</b>\n<i>Playlist: ' + playlist.name + '</i>';
             bot.notify(chatId, msg, options);
@@ -634,6 +633,11 @@ app.on('ready', async () => {
     ipcMain.on(`device-seek`, (e, time) => {
         logger.info(`seek time to ${time} on device`, tag.MAIN);
         player.deviceSeek(time);
+    });
+
+    ipcMain.on(`device-volume`, (e, volume) => {
+        logger.info(`change volume to ${volume} on device`, tag.MAIN);
+        player.setVolume(volume);
     });
 
     ipcMain.on(`select-playlist`, (e, playlistId) => {

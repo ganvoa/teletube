@@ -652,15 +652,35 @@ app.on('ready', async () => {
         player.loadStatus(status);
     });
 
-    ipcMain.on(`create-playlist`, (e, playlistName) => {
+    ipcMain.on(`edit-playlist`, (e, uid, playlistName) => {
         let isSuccess = false;
         let msg = null;
-        logger.info(`crete playlist with name: ${playlistName}`, tag.MAIN);
+        logger.info(`edit playlist with uid: ${uid}`, tag.MAIN);
         if (playlistName === '') {
             isSuccess = false;
             msg = 'Invalid name!';
-            player.createPlaylistResponse(isSuccess, msg);
-            logger.warn(`coudnt create playlist, because ${msg}`, tag.MAIN);
+            player.editPlaylistResponse(isSuccess, msg);
+            logger.warn(`couldnt edit playlist, because ${msg}`, tag.MAIN);
+        } else {
+            isSuccess = true;
+            msg = 'Playlist edited';
+            logger.info(`playlist edited`, tag.MAIN);
+            let playlist = teletubeData.getPlaylist(uid);
+            teletubeData.savePlaylist(uid, playlistName, playlist.tracks)
+            player.editPlaylistResponse(isSuccess, msg);
+            player.sendPlaylists(teletubeData.getPlaylists());
+        }
+    });
+
+    ipcMain.on(`create-playlist`, (e, playlistName) => {
+        let isSuccess = false;
+        let msg = null;
+        logger.info(`edit playlist with uid: ${uid}`, tag.MAIN);
+        if (playlistName === '') {
+            isSuccess = false;
+            msg = 'Invalid name!';
+            player.editPlaylistResponse(isSuccess, msg);
+            logger.warn(`couldnt create playlist, because ${msg}`, tag.MAIN);
         } else {
             isSuccess = true;
             msg = 'Playlist created';

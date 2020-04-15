@@ -10,6 +10,7 @@
         "postinstall": "electron-builder install-app-deps"
     },
     "build": {
+        "productName": "Teletube Player",
         "appId": "dev.gamboa.teletube",
         "linux": {
             "target": [
@@ -18,7 +19,8 @@
         },
         "win": {
             "target": "NSIS",
-            "icon": "build/icon.png"
+            "icon": "build/icon.png",
+            "uninstallDisplayName": "Teletube Player"
         }
     },
     "author": "gamboa",

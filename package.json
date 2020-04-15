@@ -19,8 +19,7 @@
         },
         "win": {
             "target": "NSIS",
-            "icon": "build/icon.png",
-            "uninstallDisplayName": "Teletube Player"
+            "icon": "build/icon.png"
         }
     },
     "author": "gamboa",

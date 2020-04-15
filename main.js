@@ -704,7 +704,7 @@ app.on('ready', async () => {
     ipcMain.on(`create-playlist`, (e, playlistName) => {
         let isSuccess = false;
         let msg = null;
-        logger.info(`edit playlist with uid: ${uid}`, tag.MAIN);
+        logger.info(`create playlist ${playlistName}`, tag.MAIN);
         if (playlistName === '') {
             isSuccess = false;
             msg = 'Invalid name!';

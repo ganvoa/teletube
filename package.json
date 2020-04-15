@@ -6,11 +6,12 @@
     "scripts": {
         "start": "electron .",
         "pack": "electron-builder --dir",
-        "dist": "electron-builder",
+        "dist": "electron-builder --publish always",
         "postinstall": "electron-builder install-app-deps"
     },
     "build": {
         "productName": "Teletube Player",
+        "publish": "github",
         "appId": "dev.gamboa.teletube",
         "linux": {
             "target": [
@@ -21,6 +22,10 @@
             "target": "NSIS",
             "icon": "build/icon.png"
         }
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/gamb0a/teletube-player.git"
     },
     "author": "gamboa",
     "license": "ISC",

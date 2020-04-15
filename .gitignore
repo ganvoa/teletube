@@ -4,3 +4,4 @@ client_secret.json
 .vscode
 /tests
 workspase.code-workspace
+/dist

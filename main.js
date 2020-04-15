@@ -593,6 +593,35 @@ app.on('ready', async () => {
         }
     });
 
+    ipcMain.on(`ui-export-playlist`, (e) => {
+        logger.info(`ui-export-playlist`, tag.UI);
+        let currenPlaylist = teletubeData.getStatus().currentPlaylist;
+        if (currenPlaylist === null) {
+            logger.warn(`no playlist selected`, tag.UI);
+            return;
+        }
+        try {
+            player.exportPlaylist(currenPlaylist);
+        } catch (error) {
+            logger.error(makeError(error), tag.UI);
+        }
+    });
+
+    ipcMain.on(`ui-import-playlist`, async (e) => {
+        logger.info(`ui-import-playlist`, tag.UI);
+        try {
+            let playlist = await player.importPlaylist();
+            if (playlist !== null) {
+                teletubeData.importPlaylist(playlist);
+                player.sendPlaylists(teletubeData.getPlaylists());
+                player.notify(`Playlist imported succesfully`);
+            }
+        } catch (error) {
+            logger.error(makeError(error), tag.UI);
+            player.notify(`An error ocurred`);
+        }
+    });
+
     ipcMain.on(`check-song`, async (e, playlistId, songToCheck) => {
         let song = songToCheck;
         logger.info(`check song ${song.title} to play`, tag.MAIN);

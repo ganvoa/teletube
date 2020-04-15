@@ -5,18 +5,17 @@
     "main": "main.js",
     "scripts": {
         "start": "electron .",
-        "pack": "electron-builder --dir",
-        "dist": "electron-builder --publish always",
-        "postinstall": "electron-builder install-app-deps"
+        "dist:publish": "electron-builder --publish always",
+        "dist": "electron-builder"
     },
     "build": {
         "productName": "Teletube Player",
         "publish": "github",
         "appId": "dev.gamboa.teletube",
         "linux": {
-            "target": [
-                "deb"
-            ]
+            "target": "deb",
+            "icon": "./build/icons",
+            "category": "Audio"
         },
         "win": {
             "target": "NSIS",
@@ -27,7 +26,10 @@
         "type": "git",
         "url": "https://github.com/gamb0a/teletube-player.git"
     },
-    "author": "gamboa",
+    "author": {
+        "name": "gamboa",
+        "email": "hi@gamboa.dev"
+    },
     "license": "ISC",
     "dependencies": {
         "axios": "^0.19.2",
